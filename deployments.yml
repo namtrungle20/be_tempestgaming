@@ -1,0 +1,71 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_container
+    ports:
+      - "8080:3000"
+    env_file:
+      - .env.local
+
+    volumes:
+      - ./uploads:/gamingtempest/backend/uploads
+      - .:/gamingtempest/backend
+      - /gamingtempest/backend/node_modules
+    depends_on:
+      - mysql
+    networks:
+      - be_tempestgaming
+    restart: always
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_container
+    ports:
+      - "3307:3306"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    restart: always
+    networks:
+      - be_tempestgaming
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin-container
+    depends_on:
+      - mysql
+    ports:
+      - "81:80" #port mapping
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 500M
+    networks:
+      - be_tempestgaming
+
+  mysql-client:
+    image: mysql:8.0
+    container_name: mysql-client
+    command: sleep infinity
+    depends_on:
+      - mysql
+    networks:
+      - be_tempestgaming
+
+
+networks:
+  be_tempestgaming:
+    name: be_tempestgaming
+    driver: bridge
+
+
+
+
+
+
+#docker-compose -f ./deployments.yml up -d phpmyadmin  //up len
+#docker-compose -f ./deployments.yml up -d  //up len
+#docker-compose -f ./deployments.yml down   // tat

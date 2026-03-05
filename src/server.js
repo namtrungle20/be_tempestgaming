@@ -1,0 +1,90 @@
+import express from 'express'
+import dotenv from 'dotenv'
+dotenv.config()
+import db from "./models/index.js"
+import os from 'os'
+import cors from 'cors'
+import { AppRoute } from './AppRoute.js'
+import path from 'path';
+
+
+const app = express()
+const port = process.env.PORT || 3000;
+
+app.use(cors({
+  origin: true, // Cho phép tất cả các nguồn (Nếu dùng ngrok nên để *)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Origin',
+    'X-Requested-With',
+    'Accept',
+    'ngrok-skip-browser-warning'
+  ],
+  credentials: true, // Cho phép gửi cookie/token
+  optionsSuccessStatus: 200
+}));
+
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:;");
+  next();
+});
+
+
+app.use(express.static(path.join(process.cwd())));
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
+
+// app.get('/', (req, res) => {
+//   res.send('Đây là Shop Tempest Gaming đc sử dụng bởi Nodejs')
+// })
+
+app.get('/', (req, res) => {
+  const filePath = path.join(process.cwd(), 'index.html');
+});
+
+app.use('/uploads', express.static(path.join(import.meta.dirname, 'uploads')));
+
+
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.sequelize.authenticate(); // kiểm tra kết nối DB
+
+    const cpuLoad = os.loadavg();
+    const memoryUsage = process.memoryUsage();
+    const cpus = os.cpus();
+
+    const cpuPercentage = cpuLoad[0] / cpus.length * 100;
+    res.status(200).json({
+      status: 'OK',
+      message: 'Đã Kết Nối',
+      cpuLoad: {
+        oneMinute: cpuLoad[0].toFixed(2),
+        fiveMinutes: cpuLoad[1].toFixed(2),
+        fifteenMinutes: cpuLoad[2].toFixed(2),
+        percentage: cpuPercentage.toFixed(2) + '%'
+
+      },
+      memoryUsage: {
+        rss: (memoryUsage.rss / 1024 / 1024).toFixed(2) + ' MB',
+        heapTotal: (memoryUsage.heapTotal / 1024 / 1024).toFixed(2) + ' MB',
+        heapUsed: (memoryUsage.heapUsed / 1024 / 1024).toFixed(2) + ' MB',
+        external: (memoryUsage.external / 1024 / 1024).toFixed(2) + ' MB'
+
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'FAIL',
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
+});
+
+AppRoute(app)
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+

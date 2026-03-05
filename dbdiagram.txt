@@ -1,0 +1,110 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table VaiTro {
+  vaitro_id int [pk]
+  ten_vai_tro varchar(50)
+}
+
+Table NguoiDung {
+  nguoidung_id int [pk]
+  email varchar [unique]
+  mat_khau varchar [not null]
+  so_dien_thoai int [not null]
+  dia_chi varchar
+  vaitro_id int [not null]
+  ngay_vao datetime
+  ngay_hoat_dong datetime
+  trang_thai varchar(20) [default: 'hoat_dong']
+}
+
+Table LoaiSanPham {
+  loai_id int [pk]
+  ten_loai varchar [not null]
+  image test
+}
+
+Table ThuongHieu{
+  thuonghieu_id int [pk]
+  name varchar
+  image test
+}
+
+Table SanPham {
+  sanpham_id int [pk]
+  ten_san_pham varchar [not null]
+  mo_ta text
+  gia decimal(18,2) [not null]
+  so_luong_ton int [default: 0]
+  hinh_anh varchar
+  loai_id int [not null]
+  thuonghieu_id int [not null]
+}
+
+Table GioHang {
+  giohang_id int [pk]
+  nguoidung_id int [unique, not null]
+}
+
+Table ChiTietGioHang {
+  giohang_id int
+  sanpham_id int
+  so_luong int [default: 1, not null]
+  indexes {
+    (giohang_id, sanpham_id) [pk]
+  }
+}
+
+Table DonHang {
+  donhang_id int [pk]
+  nguoidung_id int [not null]
+  tong_tien decimal(18,2) [not null]
+  ngay_dat datetime
+  trang_thai varchar [default: 'cho_duyet']
+}
+
+Table ChiTietDonHang {
+  donhang_id int
+  sanpham_id int
+  so_luong int [not null]
+  don_gia decimal(18,2) [not null]
+  indexes {
+    (donhang_id, sanpham_id) [pk]
+  }
+}
+
+Table ThanhToan {
+  thanhtoan_id int [pk]
+  donhang_id int [not null]
+  phuong_thuc varchar
+  ngay_thanh_toan datetime
+  trang_thai varchar [default: 'cho_duyet']
+}
+
+
+Table DanhGia {
+  danhgia_id int [pk]
+  sanpham_id int [not null]
+  nguoidung_id int [not null]
+  so_sao int
+  binh_luan text
+  ngay_danh_gia datetime
+}
+
+Ref: NguoiDung.vaitro_id > VaiTro.vaitro_id
+
+Ref: SanPham.loai_id > LoaiSanPham.loai_id
+Ref: SanPham.thuonghieu_id > ThuongHieu.thuonghieu_id
+
+Ref: GioHang.nguoidung_id > NguoiDung.nguoidung_id
+Ref: ChiTietGioHang.giohang_id > GioHang.giohang_id
+Ref: ChiTietGioHang.sanpham_id > SanPham.sanpham_id
+
+Ref: DonHang.nguoidung_id > NguoiDung.nguoidung_id
+Ref: ChiTietDonHang.donhang_id > DonHang.donhang_id
+Ref: ChiTietDonHang.sanpham_id > SanPham.sanpham_id
+
+Ref: ThanhToan.donhang_id > DonHang.donhang_id
+
+Ref: DanhGia.sanpham_id > SanPham.sanpham_id
+Ref: DanhGia.nguoidung_id > NguoiDung.nguoidung_id
