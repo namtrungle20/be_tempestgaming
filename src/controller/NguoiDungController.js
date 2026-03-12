@@ -1,8 +1,49 @@
 import db from '../models/index.js';
 import ResponseNguoiDung from '../dtos/responses/nguoidung/ResponseNguoiDung.js';
+import { Op } from 'sequelize'
+
+const buildSearchWhere = (filter = {}, search = '') => {
+    const where = {};
+    if (filter.vaitro !== undefined && filter.vaitro !== null && filter.vaitro !== '') {
+        where.vaitro = parseInt(filter.vaitro)
+    }
+
+    if (filter.is_lock !== undefined && filter.is_lock !== null && filter.is_lock !== '') {
+        where.is_lock = parseInt(filter.is_lock)
+    }
+
+    // Handle search
+    if (search && search.trim()) {
+        const searchTerm = search.trim()
+
+        if (Object.keys(where).length > 0) {
+            // Có filter → dùng Op.and
+            const filterConditions = { ...where }
+            return {
+                [Op.and]: [
+                    filterConditions,
+                    {
+                        [Op.or]: [
+                            { email: { [Op.like]: `%${searchTerm}%` } },
+                            { sdt: { [Op.like]: `%${searchTerm}%` } }
+                        ]
+                    }
+                ]
+            }
+        } else {
+            // Không có filter → chỉ search
+            where[Op.or] = [
+                { email: { [Op.like]: `%${searchTerm}%` } },
+                { sdt: { [Op.like]: `%${searchTerm}%` } }
+            ]
+        }
+    }
+
+    return where
+};
 
 export const postTatCaNguoiDung = async (req, res) => {
-    const { filter = {}, pagination = {}, sort = {} } = req.body;
+    const { filter = {}, pagination = {}, sort = {}, search = '' } = req.body;
 
     const page = parseInt(pagination.page) || 1;
     const limit = parseInt(pagination.perPage) || 10;
@@ -11,9 +52,10 @@ export const postTatCaNguoiDung = async (req, res) => {
     // React-admin gửi field 'id' nhưng DB dùng 'nguoidung_id'
     const orderField = sort.field === 'id' ? 'nguoidung_id' : (sort.field || 'ngayvao');
     const orderDir = sort.order || 'DESC';
+    const where = buildSearchWhere(filter, search);
 
     const { count, rows } = await db.NguoiDung.findAndCountAll({
-        where: filter,
+        where,
         attributes: ['nguoidung_id', 'email', 'sdt', 'vaitro', 'is_lock'],
         limit,
         offset,
@@ -44,7 +86,7 @@ export const postNguoiDungById = async (req, res) => {
 };
 
 export const updateNguoiDung = async (req, res) => {
-    const { id, email, vaitro, is_lock } = req.body;
+    const { id, email, sdt, vaitro, is_lock } = req.body;
     if (!id) {
         return res.status(400).json({ success: false, message: 'Thiếu ID người dùng' });
     }
@@ -55,6 +97,7 @@ export const updateNguoiDung = async (req, res) => {
     }
 
     if (email !== undefined) user.email = email;
+    if (sdt !== undefined) user.sdt = sdt;
     if (vaitro !== undefined) user.vaitro = vaitro;
     if (is_lock !== undefined) user.is_lock = is_lock;
     await user.save();
