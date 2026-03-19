@@ -140,3 +140,7 @@ export const logout = async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'Đăng xuất thành công' });
 };
+
+export const getMe = async (req, res) => {
+    return res.status(200).json({ success: true, data: req.user })
+}

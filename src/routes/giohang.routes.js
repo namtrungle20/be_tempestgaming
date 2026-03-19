@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import validate from '../middlewares/validate.js';
-import { requestVaiTro } from '../middlewares/jwtMiddleware.js';
-import * as GioHangController from '../controller/GioHangController.js';
-import * as ChiTietGioHangController from '../controller/ChiTietGioHangController.js';
+import validate from '../middlewares/validate.middleware.js';
+import { requestVaiTro } from '../middlewares/auth.middleware.js';
+import * as GioHangController from '../controller/GioHang.controller.js';
+import * as ChiTietGioHangController from '../controller/ChiTietGioHang.controller.js';
 import ThemGioHangRequest from '../dtos/requests/GioHang/ThemGioHangRequest.js';
 import ThemChiTietGioHangRequest from '../dtos/requests/ChiTietGioHang/ThemChiTietGioHangRequest.js';
 import { VaiTroNguoiDung } from '../constants/index.js';

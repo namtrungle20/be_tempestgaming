@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import { requestVaiTro } from '../middlewares/jwtMiddleware.js';
-import * as NguoiDungController from '../controller/NguoiDungController.js';
+import { requestVaiTro } from '../middlewares/auth.middleware.js';
+import * as NguoiDungController from '../controller/NguoiDung.controller.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
 
 const router = Router();

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import { requestVaiTro } from '../middlewares/jwtMiddleware.js';
-import { uploadArray, uploadCloudinarySingle } from '../middlewares/uploadImage.js';
-import validateImageExists from '../middlewares/validateImageExists.js';
-import * as ImageController from '../controller/ImageController.js';
+import { requestVaiTro } from '../middlewares/auth.middleware.js';
+import { uploadArray, uploadCloudinarySingle } from '../middlewares/upload.middleware.js';
+import validateImageExists from '../middlewares/validateImage.middleware.js';
+import * as ImageController from '../controller/Image.controller.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
 
 const router = Router();

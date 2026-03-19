@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import validate from '../middlewares/validate.js';
-import { requestVaiTro } from '../middlewares/jwtMiddleware.js';
-import * as DonHangController from '../controller/DonHangController.js';
-import * as ChiTietDonHangController from '../controller/ChiTietDonHangController.js';
+import validate from '../middlewares/validate.middleware.js';
+import { requestVaiTro } from '../middlewares/auth.middleware.js';
+import * as DonHangController from '../controller/DonHang.controller.js';
+import * as ChiTietDonHangController from '../controller/ChiTietDonHang.controller.js';
 import UpdateDonHangRequest from '../dtos/requests/DonHang/UpdateDonHangRequest.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
 

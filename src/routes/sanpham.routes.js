@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import validate from '../middlewares/validate.js';
-import { requestVaiTro } from '../middlewares/jwtMiddleware.js';
-import { uploadSingle } from '../middlewares/uploadImage.js';
-import * as SanPhamController from '../controller/SanPhamController.js';
+import validate from '../middlewares/validate.middleware.js';
+import { requestVaiTro } from '../middlewares/auth.middleware.js';
+import { uploadSingle } from '../middlewares/upload.middleware.js';
+import * as SanPhamController from '../controller/SanPham.controller.js';
 import ThemSanPhamRequest from '../dtos/requests/SanPham/ThemSanPhamRequest.js';
 import UpdateSanPhamRequest from '../dtos/requests/SanPham/UpdateSanPhamRequest.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
