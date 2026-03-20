@@ -50,27 +50,27 @@ export const themThuongHieu = async (req, res) => {
 };
 
 export const updateThuongHieu = async (req, res) => {
-    const { id } = req.params;
-    const { name } = req.body;
+    const { id } = req.params
+    const { name } = req.body
+
+    const thuongHieu = await db.ThuongHieu.findByPk(id)
+    if (!thuongHieu)
+        return res.status(404).json({ success: false, message: 'Không tìm thấy thương hiệu' })
 
     if (name) {
         const existed = await db.ThuongHieu.findOne({
-            where: { name, thuonghieu_id: { [Op.ne]: id } },
-        });
-        if (existed) {
-            return res.status(409).json({ success: false, message: 'Tên thương hiệu đã tồn tại' });
-        }
+            where: { name, thuonghieu_id: { [Op.ne]: id } }
+        })
+        if (existed)
+            return res.status(409).json({ success: false, message: 'Tên thương hiệu đã tồn tại' })
     }
 
-    const updateData = { name };
-    if (req.file) updateData.image = req.file.filename;
+    const updateData = { name }
+    if (req.file) updateData.image = req.file.filename
 
-    const [updated] = await db.ThuongHieu.update(updateData, { where: { thuonghieu_id: id } });
-    if (!updated) {
-        return res.status(404).json({ success: false, message: 'Không tìm thấy thương hiệu để cập nhật' });
-    }
-    return res.status(200).json({ success: true, message: 'Cập nhật thương hiệu thành công' });
-};
+    await thuongHieu.update(updateData) // ✅ instance update
+    return res.status(200).json({ success: true, message: 'Cập nhật thương hiệu thành công' })
+}
 
 export const xoaThuongHieu = async (req, res) => {
     const deleted = await db.ThuongHieu.destroy({ where: { thuonghieu_id: req.params.id } });

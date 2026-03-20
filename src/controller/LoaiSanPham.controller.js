@@ -46,27 +46,27 @@ export const themLoaiSanPhams = async (req, res) => {
 };
 
 export const updateLoaiSanPhams = async (req, res) => {
-    const { id } = req.params;
-    const { name } = req.body;
+    const { id } = req.params
+    const { name } = req.body
+
+    const loaiSP = await db.LoaiSanPham.findByPk(id)
+    if (!loaiSP)
+        return res.status(404).json({ success: false, message: 'Không tìm thấy loại sản phẩm' })
 
     if (name) {
         const existed = await db.LoaiSanPham.findOne({
-            where: { name, loai_id: { [Op.ne]: id } },
-        });
-        if (existed) {
-            return res.status(409).json({ success: false, message: 'Tên loại sản phẩm đã tồn tại' });
-        }
+            where: { name, loai_id: { [Op.ne]: id } }
+        })
+        if (existed)
+            return res.status(409).json({ success: false, message: 'Tên loại sản phẩm đã tồn tại' })
     }
 
-    const updateData = { name };
-    if (req.file) updateData.image = req.file.filename;
+    const updateData = { name }
+    if (req.file) updateData.image = req.file.filename
 
-    const [updated] = await db.LoaiSanPham.update(updateData, { where: { loai_id: id } });
-    if (!updated) {
-        return res.status(404).json({ success: false, message: 'Không tìm thấy loại sản phẩm để cập nhật' });
-    }
-    return res.status(200).json({ success: true, message: 'Cập nhật loại sản phẩm thành công' });
-};
+    await loaiSP.update(updateData) // ✅ instance update
+    return res.status(200).json({ success: true, message: 'Cập nhật loại sản phẩm thành công' })
+}
 
 export const xoaLoaiSanPhams = async (req, res) => {
     const deleted = await db.LoaiSanPham.destroy({ where: { loai_id: req.params.id } });

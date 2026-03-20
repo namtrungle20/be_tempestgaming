@@ -15,6 +15,28 @@ const buildSearchWhere = (search) => {
     }
 }
 
+const buildFilterWhere = ({ search, loai_id, thuonghieu_id, gia_min, gia_max }) => {
+    const where = buildSearchWhere(search)
+
+    if (loai_id) where.loai_id = loai_id
+    if (thuonghieu_id) where.thuonghieu_id = thuonghieu_id
+    if (gia_min || gia_max) {
+        where.gia = {}
+        if (gia_min) where.gia[Op.gte] = Number(gia_min)
+        if (gia_max) where.gia[Op.lte] = Number(gia_max)
+    }
+
+    return where
+}
+
+const buildOrder = (sort_by = 'createdAt', sort_order = 'DESC') => {
+    const allowedFields = ['createdAt', 'gia', 'name']
+    const allowedOrders = ['ASC', 'DESC']
+    const field = allowedFields.includes(sort_by) ? sort_by : 'createdAt'
+    const order = allowedOrders.includes(sort_order?.toUpperCase()) ? sort_order.toUpperCase() : 'DESC'
+    return [[field, order]]
+}
+
 const sanphamIncludes = [
     { model: db.ThuongHieu, attributes: ['name'] },
     { model: db.LoaiSanPham, attributes: ['name'] },
@@ -23,10 +45,10 @@ const sanphamIncludes = [
 // ─── Controllers ────────────────────────────────────────────────────────────
 
 export const getSanPhams = async (req, res) => {
-    const { search = '', page = 1 } = req.query
+    const { search = '', page = 1, loai_id, thuonghieu_id, gia_min, gia_max, sort_by, sort_order } = req.query
     const pageSize = 10
     const offset = (page - 1) * pageSize
-    const whereClause = buildSearchWhere(search)
+    const whereClause = buildFilterWhere({ search, loai_id, thuonghieu_id, gia_min, gia_max })
 
     const [sanphams, total] = await Promise.all([
         db.SanPham.findAll({
@@ -34,7 +56,7 @@ export const getSanPhams = async (req, res) => {
             limit: pageSize,
             offset,
             include: sanphamIncludes,
-            order: [['createdAt', 'DESC']]
+            order: buildOrder(sort_by, sort_order)
         }),
         db.SanPham.count({ where: whereClause })
     ])
@@ -88,11 +110,20 @@ export const themSanPham = async (req, res) => {
 export const updateSanPham = async (req, res) => {
     const { id } = req.params
 
+    const sanpham = await db.SanPham.findByPk(id)
+    if (!sanpham)
+        return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' })
+
     const existed = req.body.name && await db.SanPham.findOne({
         where: { name: req.body.name, sanpham_id: { [Op.ne]: id } }
     })
-    if (existed)
-        return res.status(409).json({ success: false, message: 'Tên sản phẩm đã tồn tại' })
+    if (req.body.name) {
+        const existed = await db.SanPham.findOne({
+            where: { name: req.body.name, sanpham_id: { [Op.ne]: id } }
+        })
+        if (existed)
+            return res.status(409).json({ success: false, message: 'Tên sản phẩm đã tồn tại' })
+    }
 
     const updateData = {
         name: req.body.name,
@@ -104,9 +135,7 @@ export const updateSanPham = async (req, res) => {
         ...(req.file && { image: req.file.filename })
     }
 
-    const [updatedRows] = await db.SanPham.update(updateData, { where: { sanpham_id: id } })
-    if (!updatedRows)
-        return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' })
+    await sanpham.update(updateData)
 
     return res.status(200).json({ success: true, message: 'Cập nhật sản phẩm thành công' })
 }
