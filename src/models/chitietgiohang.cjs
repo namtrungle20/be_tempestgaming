@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull:false
     },
     sanpham_id: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING(10),
       allowNull:false
     },
     soluong: DataTypes.INTEGER,

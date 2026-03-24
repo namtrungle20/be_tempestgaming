@@ -9,8 +9,7 @@ module.exports = {
       sanpham_id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID, // Hoặc Sequelize.STRING(36)
-        defaultValue: Sequelize.UUIDV4 // DB-level default (v4)
+        type: Sequelize.STRING(10),
       },
       name: {
         type: Sequelize.STRING,
@@ -62,7 +61,7 @@ module.exports = {
         defaultValue: Sequelize.NOW
       }
     });
-    
+
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('SanPhams');

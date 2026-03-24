@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize'
 import db from '../models/index.js'
+import { generateSanPhamId } from '../helpers/SanPham.helper.js'
 
 const { Op } = Sequelize
 
@@ -99,7 +100,10 @@ export const themSanPham = async (req, res) => {
     if (!thuongHieu)
         return res.status(404).json({ success: false, message: 'Thương hiệu không tồn tại' })
 
+    const sanpham_id = await generateSanPhamId();
+
     const sanpham = await db.SanPham.create({
+        sanpham_id,
         name, mota, gia: gia || 0, soluong: soluong || 0,
         loai_id, thuonghieu_id, image
     })

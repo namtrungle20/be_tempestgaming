@@ -19,7 +19,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       sanpham_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(10),
         allowNull: false,
         references: {
           model: 'SanPhams',

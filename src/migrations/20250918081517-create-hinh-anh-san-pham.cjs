@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       sanpham_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(10),
         allowNull: false,
         references: {
           model: 'SanPhams',

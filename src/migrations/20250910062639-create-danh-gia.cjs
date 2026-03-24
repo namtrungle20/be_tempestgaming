@@ -10,7 +10,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4 // DB-level default (v4)
       },
       sanpham_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(10),
         allowNull: false,
         references: {
           model: 'SanPhams',

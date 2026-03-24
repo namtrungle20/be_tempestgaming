@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     // 2. Sửa khóa ngoại sanpham_id
     sanpham_id: {
-      type: DataTypes.UUID, // Phải là UUID nếu bảng SanPham dùng UUID
+      type: DataTypes.STRING(10), // Phải là UUID nếu bảng SanPham dùng UUID
       allowNull: false
     },
     // 3. Sửa khóa ngoại nguoidung_id

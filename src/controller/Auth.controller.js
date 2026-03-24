@@ -5,7 +5,7 @@ import { v7 as uuidv7 } from 'uuid';
 import db from '../models/index.js';
 import ResponseNguoiDung from '../dtos/responses/nguoidung/ResponseNguoiDung.js';
 import { VaiTroNguoiDung, TrangThaiTaiKhoan } from '../constants/index.js';
-import { verifyRefreshToken } from '../helpers/refreshToken.js';
+import { verifyRefreshToken } from '../helpers/refreshToken.helper.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
