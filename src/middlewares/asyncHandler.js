@@ -2,11 +2,14 @@ const asyncHandler = (fn) => async (req, res, next) => {
     try {
         await fn(req, res, next);
     } catch (error) {
-        console.error('[AsyncHandler Error]:', error.message);
-        return res.status(500).json({
+        const status = error.status || 500;
+        const message = error.message || 'Lỗi server';
+
+        console.error(`[AsyncHandler Error] ${status}:`, message);
+        return res.status(status).json({
             success: false,
-            message: 'Lỗi server',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            message: message,
+            ...(process.env.NODE_ENV === 'development' && { detail: error.stack })
         });
     }
 };

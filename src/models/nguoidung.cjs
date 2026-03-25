@@ -44,10 +44,12 @@ module.exports = (sequelize, DataTypes) => {
     diachi: DataTypes.STRING,
     avatar: DataTypes.STRING,
     vaitro: DataTypes.INTEGER,
-    is_lock: {
+    trangthai: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       defaultValue: 0
     },
+    deleted_at: DataTypes.DATE,
     ngayvao: DataTypes.DATE,
     ngayhoatdong: DataTypes.DATE,
   }, {
