@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js';
-import { uploadArray, uploadCloudinarySingle } from '../middlewares/upload.middleware.js';
+import { uploadArray, uploadCloudinarySingle, toCloudinary } from '../middlewares/upload.middleware.js';
 import validateImageExists from '../middlewares/validateImage.middleware.js';
 import * as ImageController from '../controller/Image.controller.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
@@ -13,7 +13,7 @@ router.get('/:fileName', asyncHandler(ImageController.viewImage));
 router.get('/cloudinary/all', asyncHandler(ImageController.getAllCloudinaryImages));
 
 router.post('/upload', adminOrUser, uploadArray(), asyncHandler(ImageController.uploadImages));
-router.post('/cloudinary/upload', adminOrUser, uploadCloudinarySingle, asyncHandler(ImageController.uploadImageToCloudinaryStorage));
+router.post('/cloudinary/upload', adminOrUser, uploadCloudinarySingle, toCloudinary, asyncHandler(ImageController.uploadImageToCloudinaryStorage))
 router.delete('/delete', adminOrUser, validateImageExists, ImageController.deleteImage);
 
 export default router;

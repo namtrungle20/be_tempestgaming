@@ -1,12 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import cloudinary from '../config/cloudinaryConfig.js';
-// import { createRequire } from 'module';
-// const require = createRequire(import.meta.url);
-// const db = require('../models');
 import db from "../models/index.js";
-import { fileURLToPath } from 'url';
-import { where } from 'sequelize';
+
 
 
 
@@ -26,26 +22,15 @@ export async function uploadImages(req, res) {
 
 export async function uploadImageToCloudinaryStorage(req, res) {
     if (!req.file) {
-        return res.status(400).json({ message: 'Không có file ảnh nào được upload!' });
+        return res.status(400).json({ message: 'Không có file ảnh nào được upload!' })
     }
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'Images', // 📂 folder trên Cloudinary
-    });
-
-    req.imageUrl = result.secure_url;
-
-    // Xoá file tạm sau khi upload
-    fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Lỗi khi xoá file tạm:', err);
-    });
-    // Trả kết quả về client
+    // ✅ Dùng req.file.path vì toCloudinary middleware đã gán secure_url vào đây
     return res.status(201).json({
         message: 'Tải ảnh lên Cloudinary thành công',
-        file: result.secure_url,
-        public_id: result.public_id, // thêm id để sau này xoá/sửa ảnh dễ hơn
-    });
-
+        file: req.file.path,
+        public_id: req.file.public_id,
+    })
 }
 
 async function checkImageInUse(imageUrl) {
