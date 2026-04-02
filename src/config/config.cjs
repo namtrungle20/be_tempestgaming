@@ -12,18 +12,18 @@ module.exports = {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT),
-    dialect: process.env.DB_DIALECT || 'mysql',
+    dialect: process.env.DB_DIALECT,
   },
 
-  production: {
-    use_env_variable: 'DATABASE_URL',
-    username: process.env.MYSQLUSER,
-    password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE,
-    host: process.env.MYSQLHOST,
-    port: process.env.MYSQLPORT,
-    dialect: 'mysql',
-  }
+  // production: {
+  //   use_env_variable: 'DATABASE_URL',
+  //   username: process.env.MYSQLUSER,
+  //   password: process.env.MYSQLPASSWORD,
+  //   database: process.env.MYSQLDATABASE,
+  //   host: process.env.MYSQLHOST,
+  //   port: process.env.MYSQLPORT,
+  //   dialect: process.env.DB_DIALECT,
+  // }
 };
 
 //sửa sau
