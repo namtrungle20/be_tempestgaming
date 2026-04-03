@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   HinhAnhSanPham.init({
-    sanpham_id: DataTypes.UUID,
+    sanpham_id: DataTypes.STRING(10),
     image_url: DataTypes.TEXT
   }, {
     sequelize,

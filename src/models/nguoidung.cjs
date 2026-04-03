@@ -25,22 +25,31 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
+    ho_ten: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     email: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
-    password: DataTypes.STRING,
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     sdt: {
       type: DataTypes.STRING, // Nên để STRING vì số điện thoại có thể có số 0 ở đầu
-      allowNull: true
+      allowNull: false
     },
     diachi: DataTypes.STRING,
     avatar: DataTypes.STRING,
     vaitro: DataTypes.INTEGER,
-    is_lock: {
+    trangthai: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       defaultValue: 0
     },
+    deleted_at: DataTypes.DATE,
     ngayvao: DataTypes.DATE,
     ngayhoatdong: DataTypes.DATE,
   }, {

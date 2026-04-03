@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import validate from '../middlewares/validate.js';
-import { requestVaiTro } from '../middlewares/jwtMiddleware.js';
-import * as VaiTroController from '../controller/VaiTroController.js';
-import * as HinhAnhSanPham from '../controller/HinhAnhSanPhamController.js';
-import * as ThongTinChiTietController from '../controller/ThongTinChiTietController.js';
+import validate from '../middlewares/validate.middleware.js';
+import { requestVaiTro } from '../middlewares/auth.middleware.js';
+import * as VaiTroController from '../controller/VaiTro.controller.js';
+import * as HinhAnhSanPham from '../controller/HinhAnhSanPham.controller.js';
+import * as ThongTinChiTietController from '../controller/ThongTinChiTiet.controller.js';
 import ThemHinhAnhSanPhamRequest from '../dtos/requests/HinhAnhSanPham/ThemHinhAnhSanPham.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
 

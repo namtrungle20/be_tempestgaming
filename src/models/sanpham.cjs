@@ -24,9 +24,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   SanPham.init({
     sanpham_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.STRING(10),
       primaryKey: true,
+      allowNull: false,
     },
     name: DataTypes.STRING,
     mota: DataTypes.TEXT,

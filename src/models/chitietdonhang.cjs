@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     sanpham_id: { // Khóa ngoại liên kết với SanPham
-      type: DataTypes.UUID,
+      type: DataTypes.STRING(10),
       allowNull: false
     },
     soluong: DataTypes.INTEGER,

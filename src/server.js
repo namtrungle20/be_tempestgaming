@@ -9,7 +9,7 @@ import path from 'path';
 
 
 const app = express()
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 app.use(cors({
   origin: true, // Cho phép tất cả các nguồn (Nếu dùng ngrok nên để *)

@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { TrangThaiDonHang } from "../../../constants/index.js";
+import { TrangThaiSanPham } from "../../../constants/index.js";
 
 class UpdateDonHangRequest {
     constructor(data) {
@@ -9,7 +9,7 @@ class UpdateDonHangRequest {
     static validate(data) {
         const schema = Joi.object({
             tongtien: Joi.number().precision(2).min(0).optional(),
-            trangthai: Joi.number().integer().valid(...Object.values(TrangThaiDonHang)).optional()
+            trangthai: Joi.number().integer().valid(...Object.values(TrangThaiSanPham)).optional()
         });
 
         return schema.validate(data);

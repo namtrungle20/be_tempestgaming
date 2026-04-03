@@ -1,55 +1,44 @@
 'use strict';
-
-const { sequelize } = require('../models');
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('SanPhams', {
-      sanpham_id: {
+    await queryInterface.createTable('DanhGias', {
+      danhgia_id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.UUID, // Hoặc Sequelize.STRING(36)
         defaultValue: Sequelize.UUIDV4 // DB-level default (v4)
       },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-      },
-      mota: {
-        type: Sequelize.TEXT
-      },
-      gia: {
-        type: Sequelize.DECIMAL(18, 2),
-        allowNull: false
-      },
-      soluong: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0
-      },
-      image: {
-        type: Sequelize.TEXT
-      },
-      loai_id: {
-        type: Sequelize.INTEGER,
+      sanpham_id: {
+        type: Sequelize.STRING(10),
         allowNull: false,
         references: {
-          model: 'LoaiSanPhams',
-          key: 'loai_id'
+          model: 'SanPhams',
+          key: 'sanpham_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      thuonghieu_id: {
-        type: Sequelize.INTEGER,
+      nguoidung_id: {
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'ThuongHieus',
-          key: 'thuonghieu_id'
+          model: 'NguoiDungs',
+          key: 'nguoidung_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
+      },
+      sosao: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+          max: 5
+        }
+      },
+      binhluan: {
+        type: Sequelize.TEXT
       },
       created_at: {
         allowNull: false,
@@ -62,9 +51,14 @@ module.exports = {
         defaultValue: Sequelize.NOW
       }
     });
-    
+    // Ràng buộc duy nhất: 1 user chỉ được đánh giá 1 lần cho 1 sản phẩm
+    await queryInterface.addConstraint('DanhGias', {
+      fields: ['sanpham_id', 'nguoidung_id'],
+      type: 'unique',
+      name: 'unique_danhgia_per_user'
+    });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('SanPhams');
+    await queryInterface.dropTable('DanhGias');
   }
 };

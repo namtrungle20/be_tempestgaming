@@ -34,8 +34,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID, // hoặc UUID, hoặc INTEGER tùy bạn
       allowNull: true
     },
-    tongtien: DataTypes.DECIMAL,
-    trangthai: DataTypes.STRING,
+    tongtien: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0
+    },
+    trangthai: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'cho_xac_nhan'
+    },
     sdt: DataTypes.STRING,
     diachi: DataTypes.STRING
   }, {

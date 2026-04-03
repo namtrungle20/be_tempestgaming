@@ -1,34 +1,39 @@
-import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import multer from 'multer'
+import cloudinary from '../config/cloudinaryConfig.js'
+import { Readable } from 'stream'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
-// Lưu file tạm vào thư mục uploads/
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, '../uploads'),
-    filename: (req, file, cb) => {
-        const safeName = Date.now() + '-' + file.originalname.replaceAll(' ', '_');
-        cb(null, safeName);
-    },
-});
-// Chỉ cho phép file ảnh
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image')) {
-        cb(null, true);
-    } else {
-        cb(new Error('Chỉ được phép tải lên file ảnh!'), false);
-    }
-};
+    if (file.mimetype.startsWith('image')) cb(null, true)
+    else cb(new Error('Chỉ được phép tải lên file ảnh!'), false)
+}
 
-// Giới hạn dung lượng 5MB
+// Dùng memoryStorage — không lưu file xuống disk
 const imageCloudinaryUpload = multer({
-    storage,
+    storage: multer.memoryStorage(),
     fileFilter,
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
-    },
-});
-export default imageCloudinaryUpload;
+    limits: { fileSize: 5 * 1024 * 1024 },
+})
+
+// Middleware upload lên Cloudinary sau khi multer xử lý
+export const uploadToCloudinary = async (req, res, next) => {
+    if (!req.file) return next()
+
+    const stream = cloudinary.uploader.upload_stream(
+        {
+            folder: 'Images',
+            transformation: [
+                { width: 800, height: 800, crop: 'pad', background: 'white' }
+            ],
+        },
+        (error, result) => {
+            if (error) return next(error)
+            req.file.path = result.secure_url
+            req.file.public_id = result.public_id
+            next()
+        }
+    )
+
+    Readable.from(req.file.buffer).pipe(stream)
+}
+
+export default imageCloudinaryUpload

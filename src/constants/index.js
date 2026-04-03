@@ -1,9 +1,9 @@
-import TrangThaiDonHang from "./TrangThaiDonHang.js";
+import TrangThaiSanPham from "./TrangThaiSanPham.js";
 import VaiTroNguoiDung from "./VaiTroNguoiDung.js";
 import TrangThaiTaiKhoan from "./TrangThaiTaiKhoan.js"
 
 export {
-    TrangThaiDonHang,
+    TrangThaiSanPham,
     VaiTroNguoiDung,
     TrangThaiTaiKhoan
 };

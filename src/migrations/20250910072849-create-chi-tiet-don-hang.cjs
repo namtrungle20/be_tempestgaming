@@ -21,7 +21,7 @@ module.exports = {
       },
       sanpham_id: {
         allowNull: false,
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(10),
         references: {
           model: 'SanPhams',
           key: 'sanpham_id'
