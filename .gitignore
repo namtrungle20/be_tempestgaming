@@ -26,3 +26,7 @@ Thumbs.db
 # Build
 dist
 build
+
+#db
+database.sql
+dbdiagram.txt
