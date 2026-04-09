@@ -32,8 +32,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID, // Bắt buộc phải là UUID để khớp với model NguoiDung
       allowNull: false
     },
-    so_sao: DataTypes.INTEGER,
-    binh_luan: DataTypes.TEXT,
+    sosao: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: { min: 1, max: 5 },
+    },
+    binhluan:{
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   }, {
     sequelize,
     modelName: 'DanhGia',

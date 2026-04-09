@@ -2,11 +2,13 @@ import { Op } from 'sequelize'
 import db from '../models/index.js'
 
 const PAGE_SIZE = 10
-const includeProduct = { model: db.SanPham, as: 'SanPhams' }
+const includeProduct = { model: db.SanPham, as: 'SanPham' }
 
 export const layHinhAnhSanPhams = async ({ search = '', page = 1 }) => {
     const offset = (parseInt(page, 10) - 1) * PAGE_SIZE
-    const where = search.trim() ? { image_url: { [Op.like]: `%${search}%` } } : {}
+    const where = {};
+    if (search.trim()) where.image_url = { [Op.like]: `%${search}%` };
+    if (sanpham_id) where.sanpham_id = sanpham_id;
 
     const [data, total] = await Promise.all([
         db.HinhAnhSanPham.findAll({ where, limit: PAGE_SIZE, offset, include: [includeProduct] }),

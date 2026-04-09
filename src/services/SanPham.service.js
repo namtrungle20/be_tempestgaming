@@ -39,7 +39,7 @@ const buildOrder = (sort_by = 'createdAt', sort_order = 'DESC') => {
 const sanphamIncludes = [
     { model: db.ThuongHieu, attributes: ['name'] },
     { model: db.LoaiSanPham, attributes: ['name'] },
-    { model: db.HinhAnhSanPham, as: 'HinhAnhSanPhams', attributes: ['image_url'], limit: 1 },
+    { model: db.HinhAnhSanPham, as: 'HinhAnhSanPham', attributes: ['image_url'], limit: 1 },
 ]
 
 // ─── Services ────────────────────────────────────────────────────────────────

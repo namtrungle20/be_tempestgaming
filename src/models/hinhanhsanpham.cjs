@@ -13,13 +13,23 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       HinhAnhSanPham.belongsTo(models.SanPham, {
         foreignKey: 'sanpham_id',
-        as: 'SanPhams'
+        as: 'SanPham'
       })
     }
   }
   HinhAnhSanPham.init({
-    sanpham_id: DataTypes.STRING(10),
-    image_url: DataTypes.TEXT
+    sanpham_id: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+    },
+    image_url: {
+      type: DataTypes.STRING(500),
+      allowNull: false,
+    },
+    la_anh_dai_dien: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   }, {
     sequelize,
     modelName: 'HinhAnhSanPham',

@@ -6,7 +6,7 @@ class ThemSanPhamRequest {
         this.mota = data.mota;
         this.gia = data.gia;
         this.soluong = data.soluong;
-        this.image = data.image;
+        this.url = data.url;
         this.loai_id = data.loai_id;
         this.thuonghieu_id = data.thuonghieu_id;
     }
@@ -16,7 +16,7 @@ class ThemSanPhamRequest {
             mota: Joi.string().min(10).required(),
             gia: Joi.number().positive().required(),
             soluong: Joi.number().integer().min(0).required(),
-            image: Joi.string().allow("", null).optional(),
+            url: Joi.string().allow("", null).optional(),
             loai_id: Joi.number().integer().required(),
             thuonghieu_id: Joi.number().integer().required()
         });

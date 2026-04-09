@@ -7,7 +7,7 @@ class ThemHinhAnhSanPhamRequest  {
     }
     static validate(data){
         const schema = Joi.object({
-            sanpham_id: Joi.number().integer().required(),
+            sanpham_id: Joi.string().required(),
             image_url: Joi.string().required()
         })
         return schema.validate(data);

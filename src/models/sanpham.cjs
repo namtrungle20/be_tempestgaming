@@ -17,9 +17,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'sanpham_id',
         as: 'ChiTietGioHang'
       });
+      SanPham.hasMany(models.ChiTietDonHang, {
+        foreignKey: 'sanpham_id',
+        as: 'ChiTietDonHang'
+      });
 
       SanPham.hasMany(models.DanhGia, { foreignKey: 'sanpham_id' });
-      SanPham.hasMany(models.HinhAnhSanPham, { foreignKey: 'sanpham_id', as: 'HinhAnhSanPhams' });
+      SanPham.hasMany(models.HinhAnhSanPham, { foreignKey: 'sanpham_id', as: 'HinhAnhSanPham' });
     }
   }
   SanPham.init({
@@ -32,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     mota: DataTypes.TEXT,
     gia: DataTypes.DECIMAL(10, 2),
     soluong: DataTypes.INTEGER,
-    image: DataTypes.TEXT,
+    url: DataTypes.STRING(255),
     loai_id: DataTypes.INTEGER,
     thuonghieu_id: DataTypes.INTEGER
   }, {
