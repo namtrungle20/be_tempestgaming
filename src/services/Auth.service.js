@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import argon2 from 'argon2'
 import { v7 as uuidv7 } from 'uuid'
 import db from '../models/index.js'
-import ResponseNguoiDung from '../dtos/responses/nguoidung/ResponseNguoiDung.js'
+import ResponseNguoiDung from '../dtos/responses/ResponseNguoiDung.js'
 import { VaiTroNguoiDung, TrangThaiTaiKhoan } from '../constants/index.js'
 import { verifyRefreshToken } from '../helpers/refreshToken.helper.js'
 

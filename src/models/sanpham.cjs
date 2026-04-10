@@ -38,7 +38,11 @@ module.exports = (sequelize, DataTypes) => {
     soluong: DataTypes.INTEGER,
     url: DataTypes.STRING(255),
     loai_id: DataTypes.INTEGER,
-    thuonghieu_id: DataTypes.INTEGER
+    thuonghieu_id: DataTypes.INTEGER,
+    deleted_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    }
   }, {
     sequelize,
     modelName: 'SanPham',

@@ -46,6 +46,12 @@ export const uploadCloudinarySingle = multer({
     limits: { fileSize: MAX_FILE_SIZE },
 }).single('image')
 
+export const uploadCloudinaryArray = multer({
+    storage: memoryStorage,
+    fileFilter: imageFileFilter,
+    limits: { fileSize: MAX_FILE_SIZE },
+}).array('images', 5)
+
 export const toCloudinary = async (req, res, next) => {
     if (!req.file) return next()
 
@@ -66,3 +72,27 @@ export const toCloudinary = async (req, res, next) => {
 
     Readable.from(req.file.buffer).pipe(stream)
 }
+// middlewares/upload.middleware.js (thêm)
+export const toCloudinaryArray = async (req, res, next) => {
+    if (!req.files || req.files.length === 0) return next();
+
+    try {
+        const uploadPromises = req.files.map(file => {
+            return new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'Images', transformation: [{ width: 800, height: 800, crop: 'pad', background: 'white' }] },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve({ url: result.secure_url, public_id: result.public_id });
+                    }
+                );
+                Readable.from(file.buffer).pipe(stream);
+            });
+        });
+        const uploadedImages = await Promise.all(uploadPromises);
+        req.uploadedImages = uploadedImages; // gắn vào req để controller dùng
+        next();
+    } catch (error) {
+        next(error);
+    }
+};

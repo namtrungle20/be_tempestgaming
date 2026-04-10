@@ -11,21 +11,29 @@ export const getSanPhamById = async (req, res) => {
 }
 
 export const themSanPham = async (req, res) => {
-    const image = req.file ? req.file.filename : req.body.image
-    const data = await SanPhamService.themSanPham({ ...req.body, image })
-    return res.status(201).json({ success: true, message: 'Thêm sản phẩm thành công', data })
+    const productData = req.body;
+    const uploadedImages = req.uploadedImages || []; // từ middleware Cloudinary
+    const newProduct = await SanPhamService.themSanPham(productData, uploadedImages);
+    return res.status(201).json({ success: true, message: 'Thêm sản phẩm thành công', data: newProduct });
 }
+
 
 export const updateSanPham = async (req, res) => {
-    const updateData = {
-        ...req.body,
-        ...(req.file && { image: req.file.filename })
-    }
-    await SanPhamService.capNhatSanPham(req.params.id, updateData)
-    return res.status(200).json({ success: true, message: 'Cập nhật sản phẩm thành công' })
-}
+    const { id } = req.params;
+    const productData = req.body;
+    const uploadedImages = req.uploadedImages || [];
 
-export const xoaSanPham = async (req, res) => {
+    let deleteImageIds = [];
+    if (req.body.deleteImageIds) {
+        try { deleteImageIds = JSON.parse(req.body.deleteImageIds); } catch { deleteImageIds = req.body.deleteImageIds.split(',').map(Number); }
+    }
+    const setDefaultImageId = req.body.setDefaultImageId ? Number(req.body.setDefaultImageId) : null;
+
+    const updated = await SanPhamService.capNhatSanPhamVaAnh(id, productData, uploadedImages, deleteImageIds, setDefaultImageId);
+    res.json({ success: true, message: 'Cập nhật sản phẩm thành công', data: updated });
+};
+
+export const deleteSanPham = async (req, res) => {
     await SanPhamService.xoaSanPham(req.params.id)
     return res.status(200).json({ success: true, message: 'Xóa sản phẩm thành công' })
 }

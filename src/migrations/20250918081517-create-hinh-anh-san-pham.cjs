@@ -20,7 +20,13 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       image_url: {
-        type: Sequelize.TEXT
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      la_anh_dai_dien: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
       },
       created_at: {
         allowNull: false,

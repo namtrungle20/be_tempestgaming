@@ -1,6 +1,6 @@
 import db from '../models/index.js'
 import { Op } from 'sequelize'
-import ResponseNguoiDung from '../dtos/responses/nguoidung/ResponseNguoiDung.js'
+import ResponseNguoiDung from '../dtos/responses/ResponseNguoiDung.js'
 import TrangThaiTaiKhoan from '../constants/TrangThaiTaiKhoan.js'
 
 const buildSearchWhere = (filter = {}, search = '') => {

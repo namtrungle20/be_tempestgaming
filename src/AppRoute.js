@@ -7,13 +7,14 @@ import thuongHieuRoutes from './routes/thuonghieu.routes.js';
 import donHangRoutes from './routes/donhang.routes.js';
 import gioHangRoutes from './routes/giohang.routes.js';
 import imageRoutes from './routes/images.routes.js';
+import danhMucRouter from './routes/danhmuc.routes.js'
 import { vaiTroRouter, hinhAnhRouter, thongTinRouter } from './routes/misc.routes.js';
 
 export const AppRoute = (app) => {
     app.use(cookieParser());
-
     app.use('/api/auth', authRoutes);
     app.use('/api/nguoidung', nguoiDungRoutes);
+    app.use('/api/danhmuc', danhMucRouter);
     app.use('/api/sanpham', sanPhamRoutes);
     app.use('/api/loaisanpham', loaiSanPhamRoutes);
     app.use('/api/thuonghieu', thuongHieuRoutes);

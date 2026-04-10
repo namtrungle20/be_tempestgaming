@@ -1,20 +1,19 @@
 import { Op } from 'sequelize'
 import db from '../models/index.js'
+import ResponseHinhAnhSanPham from '../dtos/responses/ResponseHinhAnhSanPham.js';
 
-const PAGE_SIZE = 10
-const includeProduct = { model: db.SanPham, as: 'SanPham' }
 
-export const layHinhAnhSanPhams = async ({ search = '', page = 1 }) => {
-    const offset = (parseInt(page, 10) - 1) * PAGE_SIZE
-    const where = {};
-    if (search.trim()) where.image_url = { [Op.like]: `%${search}%` };
-    if (sanpham_id) where.sanpham_id = sanpham_id;
+const includeProduct = { model: db.SanPham, as: 'SanPham', attributes: ['sanpham_id', 'name', 'gia', 'url'] };
 
-    const [data, total] = await Promise.all([
-        db.HinhAnhSanPham.findAll({ where, limit: PAGE_SIZE, offset, include: [includeProduct] }),
-        db.HinhAnhSanPham.count({ where })
-    ])
-    return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) }
+export const layHinhAnhSanPhams = async ({ page = 1 }) => {
+    const data = await db.HinhAnhSanPham.findAll({
+        include: [includeProduct],
+        limit: 10,
+        offset: (page - 1) * 10
+    });
+    // Map qua DTO
+    const formattedData = data.map(item => new ResponseHinhAnhSanPham(item));
+    return { data: formattedData, total: await db.HinhAnhSanPham.count() };
 }
 
 export const layHinhAnhSanPhamTheoId = async (id) => {
@@ -23,7 +22,7 @@ export const layHinhAnhSanPhamTheoId = async (id) => {
     return hinhanh
 }
 
-export const themHinhAnhSanPham = async ({ sanpham_id, image_url }) => {
+export const themHinhAnhSanPham = async ({ sanpham_id, image_url, public_id, la_anh_dai_dien = false }) => {
     if (!sanpham_id || !image_url) throw { status: 400, message: 'Thiếu sanpham_id hoặc image_url' }
 
     const sanpham = await db.SanPham.findByPk(sanpham_id)
@@ -32,7 +31,27 @@ export const themHinhAnhSanPham = async ({ sanpham_id, image_url }) => {
     const existed = await db.HinhAnhSanPham.findOne({ where: { sanpham_id, image_url } })
     if (existed) throw { status: 409, message: 'Hình ảnh này đã được thêm cho sản phẩm' }
 
-    return await db.HinhAnhSanPham.create({ sanpham_id, image_url })
+    const imageCount = await db.HinhAnhSanPham.count({ where: { sanpham_id } });
+
+    let isDefault = false;
+    if (imageCount === 0) {
+        // Ảnh đầu tiên tự động là đại diện
+        isDefault = true;
+    } else if (la_anh_dai_dien === true) {
+        // Nếu yêu cầu set làm đại diện, gỡ cờ của ảnh cũ
+        await db.HinhAnhSanPham.update(
+            { la_anh_dai_dien: false },
+            { where: { sanpham_id, la_anh_dai_dien: true } }
+        );
+        isDefault = true;
+    }
+
+    return await db.HinhAnhSanPham.create({
+        sanpham_id,
+        image_url,
+        public_id,
+        la_anh_dai_dien: isDefault
+    });
 }
 
 export const xoaHinhAnhSanPham = async (id) => {

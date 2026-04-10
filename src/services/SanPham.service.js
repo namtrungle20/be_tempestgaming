@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize'
 import db from '../models/index.js'
 import { generateSanPhamId } from '../helpers/SanPham.helper.js'
-
+import * as HinhAnhSanPhamService from './HinhAnhSanPham.service.js';
 const { Op } = Sequelize
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ const buildSearchWhere = (search) => {
 }
 
 const buildFilterWhere = ({ search, loai_id, thuonghieu_id, gia_min, gia_max }) => {
-    const where = buildSearchWhere(search)
+    const where = { deleted_at: null, ...buildSearchWhere(search) };
     if (loai_id) where.loai_id = loai_id
     if (thuonghieu_id) where.thuonghieu_id = thuonghieu_id
     if (gia_min || gia_max) {
@@ -66,24 +66,51 @@ export const laySanPham = async ({ search = '', page = 1, loai_id, thuonghieu_id
 export const laySanPhamTheoId = async (id) => {
     const sanpham = await db.SanPham.findByPk(id, {
         include: [
-            { model: db.HinhAnhSanPham, as: 'HinhAnhSanPhams' },
-            ...sanphamIncludes,
+            { model: db.ThuongHieu, attributes: ['name'] },
+            { model: db.LoaiSanPham, attributes: ['name'] },
+            { model: db.HinhAnhSanPham, as: 'HinhAnhSanPham' }
         ]
     })
     if (!sanpham) throw { status: 404, message: 'Không tìm thấy sản phẩm' }
     return sanpham
 }
 
-export const themSanPham = async ({ name, mota, gia, soluong, loai_id, thuonghieu_id, image }) => {
+// export const themSanPham = async ({ name, mota, gia, soluong, loai_id, thuonghieu_id }) => {
+//     const [loaiSanPham, thuongHieu] = await Promise.all([
+//         db.LoaiSanPham.findByPk(loai_id),
+//         db.ThuongHieu.findByPk(thuonghieu_id)
+//     ])
+//     if (!loaiSanPham) throw { status: 404, message: 'Loại sản phẩm không tồn tại' }
+//     if (!thuongHieu) throw { status: 404, message: 'Thương hiệu không tồn tại' }
+
+//     const sanpham_id = await generateSanPhamId()
+//     return await db.SanPham.create({
+//         sanpham_id,
+//         name,
+//         mota,
+//         gia: gia || 0,
+//         soluong: soluong || 0,
+//         loai_id,
+//         thuonghieu_id,
+//     })
+// }
+export const themSanPham = async (productData, uploadedImages = []) => {
+    // Lấy các trường cần thiết
+    const { name, mota, gia, soluong, loai_id, thuonghieu_id } = productData;
+
+    // Kiểm tra loại, thương hiệu
     const [loaiSanPham, thuongHieu] = await Promise.all([
         db.LoaiSanPham.findByPk(loai_id),
         db.ThuongHieu.findByPk(thuonghieu_id)
-    ])
-    if (!loaiSanPham) throw { status: 404, message: 'Loại sản phẩm không tồn tại' }
-    if (!thuongHieu) throw { status: 404, message: 'Thương hiệu không tồn tại' }
+    ]);
+    if (!loaiSanPham) throw { status: 404, message: 'Loại sản phẩm không tồn tại' };
+    if (!thuongHieu) throw { status: 404, message: 'Thương hiệu không tồn tại' };
 
-    const sanpham_id = await generateSanPhamId()
-    return await db.SanPham.create({
+    // Tạo mã sản phẩm
+    const sanpham_id = await generateSanPhamId();
+
+    // Tạo sản phẩm (không có image)
+    const newProduct = await db.SanPham.create({
         sanpham_id,
         name,
         mota,
@@ -91,26 +118,88 @@ export const themSanPham = async ({ name, mota, gia, soluong, loai_id, thuonghie
         soluong: soluong || 0,
         loai_id,
         thuonghieu_id,
-        image
-    })
-}
+    });
 
-export const capNhatSanPham = async (id, data) => {
-    const sanpham = await db.SanPham.findByPk(id)
-    if (!sanpham) throw { status: 404, message: 'Không tìm thấy sản phẩm' }
-
-    if (data.name) {
-        const existed = await db.SanPham.findOne({
-            where: { name: data.name, sanpham_id: { [Op.ne]: id } }
-        })
-        if (existed) throw { status: 409, message: 'Tên sản phẩm đã tồn tại' }
+    // Xử lý ảnh từ Cloudinary (nếu có)
+    if (uploadedImages && uploadedImages.length > 0) {
+        for (let i = 0; i < uploadedImages.length; i++) {
+            const img = uploadedImages[i];
+            const la_anh_dai_dien = (i === 0);
+            await HinhAnhSanPhamService.themHinhAnhSanPham({
+                sanpham_id,
+                image_url: img.url,
+                la_anh_dai_dien
+            });
+        }
     }
 
-    await sanpham.update(data)
-    return sanpham
-}
+    return newProduct;
+};
+// export const capNhatSanPham = async (id, data) => {
+//     const sanpham = await db.SanPham.findByPk(id)
+//     if (!sanpham) throw { status: 404, message: 'Không tìm thấy sản phẩm' }
+
+//     if (data.name) {
+//         const existed = await db.SanPham.findOne({
+//             where: { name: data.name, sanpham_id: { [Op.ne]: id } }
+//         })
+//         if (existed) throw { status: 409, message: 'Tên sản phẩm đã tồn tại' }
+//     }
+
+//     await sanpham.update(data)
+//     return sanpham
+// }
+export const capNhatSanPhamVaAnh = async (
+    id,
+    productData,
+    uploadedImages = [],
+    deleteImageIds = [],
+    setDefaultImageId = null) => {
+    const sanpham = await db.SanPham.findOne({ where: { sanpham_id: id, deleted_at: null } });
+    if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại hoặc đã bị xóa' };
+
+    // Cập nhật thông tin cơ bản
+    const allowedFields = ['name', 'mota', 'gia', 'soluong', 'loai_id', 'thuonghieu_id'];
+    allowedFields.forEach(field => {
+        if (productData[field] !== undefined) sanpham[field] = productData[field];
+    });
+    await sanpham.save();
+
+    // Xóa ảnh cũ (trên Cloudinary và DB)
+    if (deleteImageIds.length > 0) {
+        const imagesToDelete = await db.HinhAnhSanPham.findAll({
+            where: { hinhanh_id: deleteImageIds, sanpham_id: id }
+        });
+        for (const img of imagesToDelete) {
+            if (img.public_id) await cloudinary.uploader.destroy(img.public_id).catch(e => console.error(e));
+        }
+        await db.HinhAnhSanPham.destroy({ where: { hinhanh_id: deleteImageIds, sanpham_id: id } });
+    }
+
+    // Thêm ảnh mới
+    for (const img of uploadedImages) {
+        await HinhAnhSanPhamService.themHinhAnhSanPham({
+            sanpham_id: id, image_url: img.url, public_id: img.public_id, la_anh_dai_dien: false
+        });
+    }
+
+    // Xử lý ảnh đại diện
+    if (setDefaultImageId) {
+        await db.HinhAnhSanPham.update({ la_anh_dai_dien: false }, { where: { sanpham_id: id, la_anh_dai_dien: true } });
+        const [updated] = await db.HinhAnhSanPham.update({ la_anh_dai_dien: true }, { where: { hinhanh_id: setDefaultImageId, sanpham_id: id } });
+        if (updated === 0) throw { status: 404, message: 'Không tìm thấy ảnh để đặt làm đại diện' };
+    } else if (uploadedImages.length > 0) {
+        const remainingCount = await db.HinhAnhSanPham.count({ where: { sanpham_id: id } });
+        if (remainingCount === 1) {
+            await db.HinhAnhSanPham.update({ la_anh_dai_dien: true }, { where: { sanpham_id: id } });
+        }
+    }
+    return sanpham;
+};
 
 export const xoaSanPham = async (id) => {
-    const deleted = await db.SanPham.destroy({ where: { sanpham_id: id } })
-    if (!deleted) throw { status: 404, message: 'Không tìm thấy sản phẩm' }
-}
+    const sanpham = await db.SanPham.findOne({ where: { sanpham_id: id, deleted_at: null } });
+    if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại hoặc đã bị xóa' };
+    await sanpham.update({ deleted_at: new Date() });
+    // Không xóa ảnh vật lý, chỉ xóa mềm sản phẩm. Nếu muốn xóa ảnh trên Cloudinary, bạn cần lấy danh sách public_id và xóa.
+};

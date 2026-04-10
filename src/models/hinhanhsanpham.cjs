@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     la_anh_dai_dien: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+      allowNull: false
     },
   }, {
     sequelize,

@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import cloudinary from '../config/cloudinaryConfig.js';
 import db from "../models/index.js";
+import * as HinhAnhSanPhamService from "../services/HinhAnhSanPham.service.js"
 
 
 
@@ -25,11 +26,23 @@ export async function uploadImageToCloudinaryStorage(req, res) {
         return res.status(400).json({ message: 'Không có file ảnh nào được upload!' })
     }
 
+    const { sanpham_id, la_anh_dai_dien } = req.body;
+    if (!sanpham_id) {
+        return res.status(400).json({ message: 'Thiếu sanpham_id' });
+    }
+    const image_url = req.file.path;
+
+    const newImage = await HinhAnhSanPhamService.themHinhAnhSanPham({
+        sanpham_id,
+        image_url,
+        la_anh_dai_dien: la_anh_dai_dien === 'true',
+    });
+
     // ✅ Dùng req.file.path vì toCloudinary middleware đã gán secure_url vào đây
     return res.status(201).json({
+        success: true,
         message: 'Tải ảnh lên Cloudinary thành công',
-        file: req.file.path,
-        public_id: req.file.public_id,
+        data: newImage
     })
 }
 
