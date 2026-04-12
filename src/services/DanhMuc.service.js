@@ -4,24 +4,24 @@ import { Op } from 'sequelize';
 const PAGE_SIZE = 10;
 
 // Helper tìm kiếm + lọc
-const buildWhere = ({ search, trang_thai }) => {
+const buildWhere = ({ search, trangthai }) => {
     const where = {};
     if (search && search.trim()) {
         where[Op.or] = [
             { ten: { [Op.like]: `%${search}%` } },
-            { mo_ta: { [Op.like]: `%${search}%` } }
+            { mota: { [Op.like]: `%${search}%` } }
         ];
     }
-    if (trang_thai !== undefined && trang_thai !== '') {
-        where.trang_thai = parseInt(trang_thai);
+    if (trangthai !== undefined && trangthai !== '') {
+        where.trang_thai = parseInt(trangthai);
     }
     return where;
 };
 
 // Lấy danh sách (phân trang, tìm kiếm, lọc, sắp xếp)
-export const layDanhMuc = async ({ search = '', page = 1, trang_thai, sort_by = 'thu_tu', sort_order = 'ASC' }) => {
+export const layDanhMuc = async ({ search = '', page = 1, trangthai, sort_by = 'thutu', sort_order = 'ASC' }) => {
     const offset = (parseInt(page) - 1) * PAGE_SIZE;
-    const where = buildWhere({ search, trang_thai });
+    const where = buildWhere({ search, trangthai });
     const order = [[sort_by, sort_order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC']];
 
     const { count, rows } = await db.DanhMuc.findAndCountAll({
@@ -29,7 +29,7 @@ export const layDanhMuc = async ({ search = '', page = 1, trang_thai, sort_by = 
         limit: PAGE_SIZE,
         offset,
         order,
-        attributes: ['danhmuc_id', 'ten', 'url', 'mo_ta', 'thu_tu', 'trang_thai', 'created_at', 'updated_at']
+        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai', 'created_at', 'updated_at']
     });
 
     return {
@@ -43,7 +43,7 @@ export const layDanhMuc = async ({ search = '', page = 1, trang_thai, sort_by = 
 // Lấy chi tiết theo ID
 export const layDanhMucTheoId = async (id) => {
     const danhMuc = await db.DanhMuc.findByPk(id, {
-        attributes: ['danhmuc_id', 'ten', 'url', 'mo_ta', 'thu_tu', 'trang_thai', 'created_at', 'updated_at']
+        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai', 'created_at', 'updated_at']
     });
     if (!danhMuc) throw { status: 404, message: 'Danh mục không tồn tại' };
     return danhMuc;
@@ -51,7 +51,7 @@ export const layDanhMucTheoId = async (id) => {
 
 // Thêm mới
 export const themDanhMuc = async (data) => {
-    const { ten, url, mo_ta, thu_tu, trang_thai } = data;
+    const { ten, url, mota, thutu, trangthai } = data;
 
     // Kiểm tra tên trùng
     const existed = await db.DanhMuc.findOne({ where: { ten } });
@@ -72,9 +72,9 @@ export const themDanhMuc = async (data) => {
     const newDanhMuc = await db.DanhMuc.create({
         ten,
         url: finalUrl,
-        mo_ta: mo_ta || null,
-        thu_tu: thu_tu || 0,
-        trang_thai: trang_thai !== undefined ? trang_thai : 1
+        mota: mota || null,
+        thutu: thutu || 0,
+        trangthai
     });
     return newDanhMuc;
 };

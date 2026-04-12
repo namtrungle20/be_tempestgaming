@@ -13,7 +13,7 @@ module.exports = {
 
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.addColumn('SanPham', 'image', { type: Sequelize.TEXT });
-    await queryInterface.removeColumn('SanPham', 'url');
+    await queryInterface.addColumn('SanPhams', 'image', { type: Sequelize.TEXT });
+    await queryInterface.removeColumn('SanPhams', 'url');
   }
 };

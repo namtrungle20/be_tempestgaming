@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     trangthai: {
       type: DataTypes.INTEGER,
-      defaultValue: 1, // 1: hiển thị, 0: ẩn
+      defaultValue: 1
     },
   }, {
     sequelize,

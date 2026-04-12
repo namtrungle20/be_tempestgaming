@@ -6,14 +6,15 @@ export const getLoaiSanPhams = async (req, res) => {
 }
 
 export const getLoaiSanPhamsById = async (req, res) => {
-    const data = await LoaiSanPhamService.layLoaiSanPhamTheoId(req.params.id)
-    return res.status(200).json({ success: true, data })
+    const { search, page, danhmuc_id } = req.query;
+    const result = await LoaiSanPhamService.layLoaiSanPhams({ search, page, danhmuc_id });
+    res.status(200).json({ success: true, ...result });
 }
 
 export const themLoaiSanPhams = async (req, res) => {
-    const image = req.file?.filename ?? null
-    const data = await LoaiSanPhamService.themLoaiSanPham({ ...req.body, image })
-    return res.status(201).json({ success: true, message: 'Thêm loại sản phẩm thành công', data })
+    const { name, image, danhmuc_id } = req.body;
+    const data = await LoaiSanPhamService.themLoaiSanPham({ name, image, danhmuc_id });
+    res.status(201).json({ success: true, message: 'Thêm loại sản phẩm thành công', data });
 }
 
 export const updateLoaiSanPhams = async (req, res) => {

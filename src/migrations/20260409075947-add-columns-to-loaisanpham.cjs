@@ -11,7 +11,7 @@ module.exports = {
         key: 'danhmuc_id',
       },
       onUpdate: 'CASCADE',
-      onDelete: 'SET NULL',
+      onDelete: 'RESTRICT',
     });
     await queryInterface.addColumn('LoaiSanPhams', 'url', {
       type: Sequelize.STRING(255),

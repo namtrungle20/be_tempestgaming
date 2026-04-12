@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      LoaiSanPham.hasMany(models.SanPham, { foreignKey: 'loai_id' });
+      LoaiSanPham.hasMany(models.SanPham, { foreignKey: 'loai_id', as: 'SanPham' });
+      LoaiSanPham.belongsTo(models.DanhMuc, { foreignKey: 'danhmuc_id', as: 'DanhMuc' });
     }
   }
   LoaiSanPham.init({
@@ -19,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    danhmuc_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     name: DataTypes.STRING,
     image: DataTypes.TEXT

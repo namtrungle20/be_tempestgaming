@@ -1,5 +1,4 @@
 import * as DanhMucService from '../services/DanhMuc.service.js';
-import asyncHandler from '../middlewares/asyncHandler.js';
 
 export const getDanhMucs = async (req, res) => {
     const result = await DanhMucService.layDanhMuc(req.query);
