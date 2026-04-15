@@ -21,49 +21,82 @@ export async function uploadImages(req, res) {
     })
 }
 
-export async function uploadImageToCloudinaryStorage(req, res) {
-    if (!req.file) {
-        return res.status(400).json({ message: 'Không có file ảnh nào được upload!' })
+// export async function uploadImageToCloudinaryStorage(req, res) {
+//     try {
+//         if (!req.file) {
+//             return res.status(400).json({ message: 'Không có file ảnh nào được upload!' });
+//         }
+//         const { sanpham_id, la_anh_dai_dien } = req.body;
+//         if (!sanpham_id) {
+//             return res.status(400).json({ message: 'Thiếu sanpham_id' });
+//         }
+//         const image_url = req.file.path;
+//         const newImage = await HinhAnhSanPhamService.themHinhAnhSanPham({
+//             sanpham_id,
+//             image_url,
+//             la_anh_dai_dien: la_anh_dai_dien === 'true',
+//         });
+//         return res.status(201).json({
+//             success: true,
+//             message: 'Tải ảnh lên Cloudinary thành công',
+//             data: newImage
+//         });
+//     } catch (error) {
+//         return res.status(error.status || 500).json({
+//             success: false,
+//             message: error.message || 'Lỗi khi lưu ảnh'
+//         });
+//     }
+// }
+export async function uploadImageToCloudinaryOnly(req, res) {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Không có file ảnh nào được upload!' });
+        }
+        const image_url = req.file.path; // do middleware Cloudinary cung cấp
+        return res.status(201).json({
+            success: true,
+            message: 'Tải ảnh lên Cloudinary thành công',
+            url: image_url,
+            public_id: req.file.public_id
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
-
-    const { sanpham_id, la_anh_dai_dien } = req.body;
-    if (!sanpham_id) {
-        return res.status(400).json({ message: 'Thiếu sanpham_id' });
-    }
-    const image_url = req.file.path;
-
-    const newImage = await HinhAnhSanPhamService.themHinhAnhSanPham({
-        sanpham_id,
-        image_url,
-        la_anh_dai_dien: la_anh_dai_dien === 'true',
-    });
-
-    // ✅ Dùng req.file.path vì toCloudinary middleware đã gán secure_url vào đây
-    return res.status(201).json({
-        success: true,
-        message: 'Tải ảnh lên Cloudinary thành công',
-        data: newImage
-    })
 }
 
+// async function checkImageInUse(imageUrl) {
+//     const checks = [
+//         { model: db.NguoiDung, field: 'avatar' },
+//         { model: db.ThuongHieu, field: 'image' },
+//         // { model: db.SanPham, field: 'image' },
+//         { model: db.LoaiSanPham, field: 'image' },
+//     ];
+
+//     for (let { model, field } of checks) {
+//         const result = await model.findOne({ where: { [field]: imageUrl } });
+//         if (result) {
+//             return { inUse: true, model: model.name || 'Unknown', field };
+//         }
+//     }
+
+//     return { inUse: false };
+// }
 async function checkImageInUse(imageUrl) {
-    const checks = [
-        { model: db.NguoiDung, field: 'avatar' },
-        { model: db.ThuongHieu, field: 'image' },
-        { model: db.SanPham, field: 'image' },
-        { model: db.LoaiSanPham, field: 'image' },
-    ];
-
-    for (let { model, field } of checks) {
-        const result = await model.findOne({ where: { [field]: imageUrl } });
-        if (result) {
-            return { inUse: true, model: model.name || 'Unknown', field };
-        }
+    const inHinhAnh = await db.HinhAnhSanPham.findOne({ where: { image_url: imageUrl } });
+    if (inHinhAnh) {
+        return { inUse: true, model: 'HinhAnhSanPham', field: 'image_url' };
     }
-
+    const user = await db.NguoiDung.findOne({ where: { avatar: imageUrl } });
+    if (user) {
+        return { inUse: true, model: 'NguoiDung', field: 'avatar' };
+    }
+    const brand = await db.ThuongHieu.findOne({ where: { logo: imageUrl } });
+    if (brand) {
+        return { inUse: true, model: 'ThuongHieu', field: 'logo' };
+    }
     return { inUse: false };
 }
-
 
 
 export async function deleteImage(req, res) {

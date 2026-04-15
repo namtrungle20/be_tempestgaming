@@ -13,7 +13,7 @@ router.get('/:fileName', asyncHandler(ImageController.viewImage));
 router.get('/cloudinary/all', asyncHandler(ImageController.getAllCloudinaryImages));
 
 router.post('/upload', adminOrUser, uploadArray(), asyncHandler(ImageController.uploadImages));
-router.post('/cloudinary/upload', adminOrUser, uploadCloudinarySingle, toCloudinary, asyncHandler(ImageController.uploadImageToCloudinaryStorage))
+router.post('/cloudinary/upload', adminOrUser, uploadCloudinarySingle, toCloudinary, asyncHandler(ImageController.uploadImageToCloudinaryOnly))
 router.delete('/delete', adminOrUser, validateImageExists, ImageController.deleteImage);
 
 export default router;
