@@ -25,10 +25,10 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4, // Đảm bảo luôn có ID nếu quên tạo ở Controller
       allowNull: false
     },
-    khachhang_id: {
-      type: DataTypes.UUID,           // Chuyển sang UUID để đồng bộ với khách vãng lai
-      allowNull: true
-    },
+    // khachhang_id: {
+    //   type: DataTypes.UUID,           // Chuyển sang UUID để đồng bộ với khách vãng lai
+    //   allowNull: true
+    // },
     nguoidung_id: {
       type: DataTypes.UUID,           // PHẢI là UUID để khớp với model NguoiDung
       allowNull: true,
@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
         key: 'nguoidung_id'
       }
     },
+    tongtien: {
+      type: DataTypes.DECIMAL(18, 2),
+      defaultValue: 0,
+      allowNull: false,
+    }
   }, {
     sequelize,
     modelName: 'GioHang',

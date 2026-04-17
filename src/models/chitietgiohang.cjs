@@ -28,11 +28,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     giohang_id: {
       type: DataTypes.UUID,
-      allowNull:false
+      allowNull: false
     },
     sanpham_id: {
       type: DataTypes.STRING(10),
-      allowNull:false
+      allowNull: false
+    },
+    dongia: {
+      type: DataTypes.DECIMAL(18, 2),
+      allowNull: false,
     },
     soluong: DataTypes.INTEGER,
   }, {
