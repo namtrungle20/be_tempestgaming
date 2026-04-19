@@ -134,7 +134,7 @@ const capNhatTongTien = async (giohang_id) => {
     });
     let tong = 0;
     for (const ct of chiTiets) {
-        tong += ct.soluong * ct.san_pham.gia;
+        tong += ct.soluong * ct.SanPham.gia;
     }
     await db.GioHang.update({ tongtien: tong }, { where: { giohang_id } });
 };
@@ -173,14 +173,14 @@ export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
     const gioHang = await layHoacTaoGioHang(nguoidung_id);
     const sanpham = await db.SanPham.findByPk(sanpham_id);
     if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
-    if (sanpham.soluongton < soluong) throw { status: 400, message: 'Số lượng vượt quá tồn kho' };
+    if (sanpham.soluong < soluong) throw { status: 400, message: 'Số lượng vượt quá tồn kho' };
 
     let chiTiet = await db.ChiTietGioHang.findOne({
         where: { giohang_id: gioHang.giohang_id, sanpham_id }
     });
     if (chiTiet) {
         const newSoluong = chiTiet.soluong + soluong;
-        if (sanpham.soluongton < newSoluong) throw { status: 400, message: 'Tổng số lượng vượt tồn kho' };
+        if (sanpham.soluong < newSoluong) throw { status: 400, message: 'Tổng số lượng vượt tồn kho' };
         chiTiet.soluong = newSoluong;
         await chiTiet.save();
     } else {
@@ -208,7 +208,10 @@ export const capNhatSoLuong = async (nguoidung_id, sanpham_id, soluong) => {
     if (soluong === 0) {
         await chiTiet.destroy();
     } else {
-        if (chiTiet.san_pham.soluongton < soluong) throw { status: 400, message: 'Số lượng vượt quá tồn kho' };
+        if (parseInt(chiTiet.SanPham.soluong, 10) < parseInt(soluong, 10))
+            throw {
+                status: 400, message: 'Số lượng vượt quá tồn kho'
+            };
         chiTiet.soluong = soluong;
         await chiTiet.save();
     }
@@ -236,7 +239,7 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthuc = 'COD' 
             include: [{ model: db.SanPham, as: 'SanPham' }]
         }]
     });
-    if (!gioHang || !gioHang.chi_tiet_gio_hangs.length) {
+    if (!gioHang || !gioHang.ChiTietGioHang.length) {
         throw { status: 400, message: 'Giỏ hàng trống, không thể thanh toán' };
     }
 
@@ -258,10 +261,10 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthuc = 'COD' 
                 donhang_id: donHang.donhang_id,
                 sanpham_id: item.sanpham_id,
                 soluong: item.soluong,
-                dongia: item.san_pham.gia
+                dongia: item.SanPham.gia
             }, { transaction });
 
-            await db.SanPham.decrement('soluongton', {
+            await db.SanPham.decrement('soluong', {
                 by: item.soluong,
                 where: { sanpham_id: item.sanpham_id },
                 transaction

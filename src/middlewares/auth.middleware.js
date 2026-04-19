@@ -3,7 +3,7 @@ import db from '../models/index.js';
 import asyncHandler from './asyncHandler.js';
 import TrangThaiTaiKhoan from '../constants/TrangThaiTaiKhoan.js'
 
-export const verifyToken = (token) =>
+const verifyToken = (token) =>
     new Promise((resolve, reject) => {
         jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
             if (err) reject(err);

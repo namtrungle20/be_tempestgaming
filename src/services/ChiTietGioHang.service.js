@@ -118,7 +118,7 @@ export const themHoacCapNhatChiTiet = async ({ giohang_id, sanpham_id, soluong }
     ]);
     if (!giohang) throw { status: 404, message: 'Giỏ hàng không tồn tại' };
     if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
-    if (sanpham.soluongton < soluong) throw { status: 400, message: 'Sản phẩm không đủ số lượng' };
+    if (sanpham.soluong < soluong) throw { status: 400, message: 'Sản phẩm không đủ số lượng' };
 
     let chiTiet = await db.ChiTietGioHang.findOne({ where: { giohang_id, sanpham_id } });
     if (chiTiet) {
@@ -127,7 +127,7 @@ export const themHoacCapNhatChiTiet = async ({ giohang_id, sanpham_id, soluong }
             await capNhatTongTienGioHang(giohang_id);
             return { deleted: true };
         }
-        if (sanpham.soluongton < soluong) throw { status: 400, message: 'Số lượng vượt tồn kho' };
+        if (sanpham.soluong < soluong) throw { status: 400, message: 'Số lượng vượt tồn kho' };
         chiTiet.soluong = soluong;
         await chiTiet.save();
         await capNhatTongTienGioHang(giohang_id);
@@ -155,7 +155,7 @@ export const capNhatSoLuongChiTiet = async ({ id, soluong }) => {
         return { deleted: true };
     }
     const sanpham = chiTiet.SanPham;
-    if (sanpham.soluongton < soluong) throw { status: 400, message: 'Số lượng vượt tồn kho' };
+    if (sanpham.soluong < soluong) throw { status: 400, message: 'Số lượng vượt tồn kho' };
     chiTiet.soluong = soluong;
     await chiTiet.save();
     await capNhatTongTienGioHang(chiTiet.giohang_id);

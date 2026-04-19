@@ -15,8 +15,8 @@ export const getChiTietGioHangByGioHangId = async (req, res) => {
     return res.status(200).json({ message: 'Lấy danh sách chi tiết giỏ hàng thành công', data })
 }
 
-export const themChiTietGioHang = async (req, res) => {
-    const result = await ChiTietGioHangService.themChiTietGioHang(req.body)
+export const themHoacCapNhatChiTietGioHang = async (req, res) => {
+    const result = await ChiTietGioHangService.themHoacCapNhatChiTiet(req.body)
     if (result.deleted) return res.status(200).json({ message: 'Đã xóa chi tiết giỏ hàng vì số lượng = 0' })
     if (result.updated) return res.status(200).json({ message: 'Cập nhật số lượng mục trong giỏ hàng thành công', data: result.data })
     return res.status(201).json({ message: 'Thêm giỏ hàng thành công', data: result.data })

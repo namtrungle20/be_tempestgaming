@@ -1,15 +1,11 @@
-import Joi from "joi";
-
-class ThemChiTietGioHangRequest {
-
+import Joi from 'joi';
+class CapNhatSoLuongRequest {
     static validate(data) {
         const schema = Joi.object({
             sanpham_id: Joi.string().required(),
-            soluong: Joi.number().integer().min(1).default(1)
+            soluong: Joi.number().integer().min(0).required()
         });
-
         return schema.validate(data);
     }
 }
-
-export default ThemChiTietGioHangRequest;
+export default CapNhatSoLuongRequest;
