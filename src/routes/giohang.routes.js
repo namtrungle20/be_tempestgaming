@@ -13,13 +13,14 @@ const router = Router();
 
 const adminOnly = requestVaiTro([VaiTroNguoiDung.ADMIN]);
 const userOnly = requestVaiTro([VaiTroNguoiDung.USER]);
+const adminOrUser = requestVaiTro([VaiTroNguoiDung.USER, VaiTroNguoiDung.ADMIN])
 
 // USER routes
-router.get('/me', userOnly, asyncHandler(GioHangController.getMyGioHang));
-router.post('/me/them', userOnly, validate(ThemChiTietGioHangUserRequest), asyncHandler(GioHangController.themSanPhamVaoGio));
-router.put('/me/capnhat', userOnly, validate(CapNhatSoLuongRequest), asyncHandler(GioHangController.capNhatSoLuongTrongGio));
-router.delete('/me/xoa/:sanpham_id', userOnly, asyncHandler(GioHangController.xoaSanPhamKhoiGio));
-router.post('/me/thanhtoan', userOnly, validate(ThanhToanRequest), asyncHandler(GioHangController.thanhToanGioHang));
+router.get('/me', adminOrUser, asyncHandler(GioHangController.getMyGioHang));
+router.post('/me/them', adminOrUser, validate(ThemChiTietGioHangUserRequest), asyncHandler(GioHangController.themSanPhamVaoGio));
+router.put('/me/capnhat', adminOrUser, validate(CapNhatSoLuongRequest), asyncHandler(GioHangController.capNhatSoLuongTrongGio));
+router.delete('/me/xoa/:sanpham_id', adminOrUser, asyncHandler(GioHangController.xoaSanPhamKhoiGio));
+router.post('/me/thanhtoan', adminOrUser, validate(ThanhToanRequest), asyncHandler(GioHangController.thanhToanGioHang));
 
 // ADMIN routes (giữ nguyên)
 router.get('/', adminOnly, asyncHandler(GioHangController.getGioHangs));
