@@ -155,13 +155,28 @@ export const capNhatSanPhamVaAnh = async (
     uploadedImages = [],
     deleteImageIds = [],
     setDefaultImageId = null) => {
-    const sanpham = await db.SanPham.findOne({ where: { sanpham_id: id, deleted_at: null } });
-    if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại hoặc đã bị xóa' };
+    const sanpham = await db.SanPham.findOne({
+        where: {
+            sanpham_id: id,
+            deleted_at: null
+        }
+    });
+    if (!sanpham) {
+        throw {
+            status: 404,
+            message: `Sản phẩm ID ${id} không tồn tại hoặc đã bị xóa`,
+            debug: { id, productDataKeys: Object.keys(productData || {}) }
+        };
+    }
+
 
     // Cập nhật thông tin cơ bản
     const allowedFields = ['name', 'mota', 'gia', 'soluong', 'loai_id', 'thuonghieu_id'];
     allowedFields.forEach(field => {
-        if (productData[field] !== undefined) sanpham[field] = productData[field];
+        // ✅ ĐÃ FIX: Kiểm tra field tồn tại và không undefined
+        if (productData.hasOwnProperty(field) && productData[field] !== undefined) {
+            sanpham[field] = productData[field];
+        }
     });
     await sanpham.save();
 

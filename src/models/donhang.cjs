@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     tongtien: {
-      type: DataTypes.DECIMAL(10, 2),
+      type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0
     },

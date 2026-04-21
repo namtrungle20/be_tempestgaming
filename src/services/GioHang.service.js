@@ -2,6 +2,8 @@ import { Op } from 'sequelize'
 import db from '../models/index.js'
 import { v7 as uuidv7 } from 'uuid';
 import { TrangThaiDonHang } from '../constants/index.js'
+import { PhuongThucThanhToan, TrangThaiThanhToan } from '../constants/index.js';
+import { createMomoPayment } from './ThanhToan.service.js';
 
 // export const layGioHangs = async ({ page = 1, khachhang_id, nguoidung_id }) => {
 //     const pageSize = 5
@@ -230,7 +232,7 @@ export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
 };
 
 // Thanh toán: chuyển giỏ hàng thành đơn hàng
-export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthuc = 'COD' }) => {
+export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan = PhuongThucThanhToan.COD }) => {
     const gioHang = await db.GioHang.findOne({
         where: { nguoidung_id },
         include: [{
@@ -252,11 +254,15 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthuc = 'COD' 
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
             diachi_giao_hang: diachi,
             sdt_nguoi_nhan: sdt,
-            phuongthuc_thanh_toan: phuongthuc
+            phuongthucthanhtoan
         }, { transaction });
 
-        // Tạo chi tiết đơn hàng và cập nhật tồn kho
-        for (const item of gioHang.chi_tiet_gio_hangs) {
+        for (const item of gioHang.ChiTietGioHang) {
+            if (item.SanPham.soluong < item.soluong)
+                throw {
+                    status: 400, message: `Sản phẩm ${item.SanPham.name} không đủ tồn kho`
+                };
+
             await db.ChiTietDonHang.create({
                 donhang_id: donHang.donhang_id,
                 sanpham_id: item.sanpham_id,
@@ -274,7 +280,17 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthuc = 'COD' 
         // Xóa giỏ hàng (cascade sẽ xóa chi tiết)
         await gioHang.destroy({ transaction });
         await transaction.commit();
-        return donHang;
+
+        if (phuongthucthanhtoan === PhuongThucThanhToan.MOMO) {
+            const { momoResult } = await createMomoPayment({
+                donhang_id: donHang.donhang_id,
+                sotien: Number(gioHang.tongtien),
+                orderInfo: `Thanh toan don hang ${donHang.donhang_id}`,
+            });
+            return { donHang, payUrl: momoResult.payUrl };
+        }
+
+        return { donHang };
     } catch (error) {
         await transaction.rollback();
         throw error;

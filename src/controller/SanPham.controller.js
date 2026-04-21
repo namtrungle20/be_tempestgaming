@@ -19,7 +19,9 @@ export const themSanPham = async (req, res) => {
 
 
 export const updateSanPham = async (req, res) => {
-    const { id } = req.params;
+    console.log('req.params:', req.params);
+    const id = req.params.id;
+    console.log('id:', id);
     const productData = req.body;
     const uploadedImages = req.uploadedImages || [];
 

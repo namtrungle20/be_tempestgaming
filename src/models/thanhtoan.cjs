@@ -30,16 +30,46 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     phuongthucthanhtoan: {
-      type: DataTypes.STRING,
-      allowNull: false
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      // 0: COD | 1: MoMo | 2: VNPay | 3: Bank Transfer
+    },
+    sotien: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      defaultValue: 0,
     },
     trangthai: {
       type: DataTypes.INTEGER,
-      defaultValue: 0, // 0: Chờ thanh toán, 1: Thành công, 2: Thất bại
-      allowNull: false
-    }
+      allowNull: false,
+      defaultValue: 0,
+      // 0: Chờ thanh toán | 1: Thành công | 2: Thất bại | 3: Hoàn tiền
+    },
+    momo_order_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    momo_request_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    momo_trans_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    momo_result_code: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    momo_pay_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    momo_time_pay: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   }, {
-
     sequelize,
     modelName: 'ThanhToan',
     tableName: 'ThanhToans',
