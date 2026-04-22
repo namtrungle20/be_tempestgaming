@@ -1,6 +1,6 @@
 import { Op } from 'sequelize'
 import db from '../models/index.js'
-import TrangThaiDonHang from '../constants/TrangThaiSanPham.js'
+import { TrangThaiDonHang } from '../constants/index.js'
 
 export const layDonHangs = async ({ search = '', page = 1, trangthai }) => {
     const PAGE_SIZE = 10
@@ -9,8 +9,7 @@ export const layDonHangs = async ({ search = '', page = 1, trangthai }) => {
 
     if (search.trim()) {
         where[Op.or] = [
-            { ma_don: { [Op.like]: `%${search}%` } },
-            { ten_khach: { [Op.like]: `%${search}%` } }
+            { donhang_id: { [Op.like]: `%${search}%` } },
         ]
     }
     if (trangthai) where.trangthai = trangthai
@@ -26,7 +25,10 @@ export const layDonHangTheoId = async (id) => {
     const donhang = await db.DonHang.findByPk(id, {
         include: [
             { model: db.NguoiDung, as: 'NguoiDung' },
-            { model: db.ChiTietDonHang, include: [{ model: db.SanPham, as: 'SanPham' }] }
+            {
+                model: db.ChiTietDonHang,
+                include: [{ model: db.SanPham, as: 'SanPham' }]
+            }
         ]
     })
     if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng' }
@@ -34,13 +36,61 @@ export const layDonHangTheoId = async (id) => {
 }
 
 export const xoaDonHang = async (id) => {
-    const [updated] = await db.DonHang.update({ trangthai: TrangThaiDonHang.DA_HUY }, { where: { donhang_id: id } })
-    if (!updated) throw { status: 404, message: 'Không tìm thấy đơn hàng để hủy' }
+    const donhang = await db.DonHang.findByPk(id, {
+        include: [{ model: db.ChiTietDonHang }]
+    });
+    if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng' };
+    if (donhang.trangthai !== TrangThaiDonHang.CHO_XAC_NHAN) {
+        throw { status: 400, message: 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận' };
+    }
+
+    const transaction = await db.sequelize.transaction();
+    try {
+        await donhang.update({ trangthai: TrangThaiDonHang.DA_HUY }, { transaction });
+
+        // Hoàn lại số lượng tồn kho
+        for (const item of donhang.ChiTietDonHangs) {
+            await db.SanPham.increment('soluong', {
+                by: item.soluong,
+                where: { sanpham_id: item.sanpham_id },
+                transaction
+            });
+        }
+        await transaction.commit();
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
 }
 
 export const capNhatDonHang = async (id, data) => {
-    const donhang = await db.DonHang.findByPk(id)
-    if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng để cập nhật' }
-    await donhang.update({ ...donhang.toJSON(), ...data })
-    return await db.DonHang.findByPk(id)
-}
+    const donhang = await db.DonHang.findByPk(id, {
+        include: [{ model: db.ChiTietDonHang }]
+    });
+    if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng' };
+
+    const oldStatus = donhang.trangthai;
+    const newStatus = data.trangthai;
+
+    const transaction = await db.sequelize.transaction();
+    try {
+        await donhang.update(data, { transaction });
+
+        // Nếu chuyển từ trạng thái khác (không phải hủy) sang hủy -> hoàn kho
+        if (newStatus === TrangThaiDonHang.DA_HUY && oldStatus !== TrangThaiDonHang.DA_HUY) {
+            for (const item of donhang.ChiTietDonHang) {
+                await db.SanPham.increment('soluong', {
+                    by: item.soluong,
+                    where: { sanpham_id: item.sanpham_id },
+                    transaction
+                });
+            }
+        }
+        // (Tuỳ chọn) Nếu từ hủy sang trạng thái khác, có thể trừ lại kho (nhưng hiếm dùng)
+        await transaction.commit();
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+    return await db.DonHang.findByPk(id);
+};

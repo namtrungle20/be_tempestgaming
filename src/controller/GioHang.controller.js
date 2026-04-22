@@ -54,8 +54,8 @@ export const xoaSanPhamKhoiGio = async (req, res) => {
 
 export const thanhToanGioHang = async (req, res) => {
     const userId = req.user.nguoidung_id;
-    const { diachi, sdt, phuongthuc } = req.body;
-    const donHang = await GioHangService.thanhToan(userId, { diachi, sdt, phuongthuc });
+    const { diachi, sdt, phuongthucthanhtoan } = req.body;
+    const donHang = await GioHangService.thanhToan(userId, { diachi, sdt, phuongthucthanhtoan });
     res.status(201).json({ success: true, message: 'Thanh toán thành công', data: donHang });
 };
 

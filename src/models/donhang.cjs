@@ -30,19 +30,15 @@ module.exports = (sequelize, DataTypes) => {
         key: 'nguoidung_id'
       }
     },
-    khachhang_id: {
-      type: DataTypes.UUID, // hoặc UUID, hoặc INTEGER tùy bạn
-      allowNull: true
-    },
     tongtien: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0
     },
     trangthai: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 'cho_xac_nhan'
+      defaultValue: 0
     },
     sdt: DataTypes.STRING,
     diachi: DataTypes.STRING

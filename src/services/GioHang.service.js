@@ -252,8 +252,8 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
             nguoidung_id,
             tongtien: gioHang.tongtien,
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
-            diachi_giao_hang: diachi,
-            sdt_nguoi_nhan: sdt,
+            diachi: diachi,
+            sdt: sdt,
             phuongthucthanhtoan
         }, { transaction });
 
