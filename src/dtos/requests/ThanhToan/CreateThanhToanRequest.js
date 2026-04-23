@@ -2,12 +2,6 @@ import Joi from 'joi';
 import { PhuongThucThanhToan } from '../../../constants/index.js';
 
 class CreateThanhToanRequest {
-    constructor(data) {
-        this.donhang_id = data.donhang_id;
-        this.sotien = data.sotien;
-        this.phuongthucthanhtoan = data.phuongthucthanhtoan;
-        this.orderInfo = data.orderInfo;
-    }
 
     static validate(data) {
         const schema = Joi.object({

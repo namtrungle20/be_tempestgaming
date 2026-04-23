@@ -18,6 +18,6 @@ export const ChiTietThanhToanResponse = (thanhtoan) => ({
     trangthai: thanhtoan.trangthai,
     momo_trans_id: thanhtoan.momo_trans_id,
     momo_pay_type: thanhtoan.momo_pay_type,
-    momo_time_pay: thanhtoan.thanhtoan_luc,
+    momo_time_pay: thanhtoan.momo_time_pay,
     created_at: thanhtoan.created_at,
 });

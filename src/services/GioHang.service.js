@@ -232,7 +232,7 @@ export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
 };
 
 // Thanh toán: chuyển giỏ hàng thành đơn hàng
-export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan = PhuongThucThanhToan.COD }) => {
+export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan = PhuongThucThanhToan.TAI_CUA_HANG }) => {
     const gioHang = await db.GioHang.findOne({
         where: { nguoidung_id },
         include: [{
@@ -246,22 +246,20 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
     }
 
     const transaction = await db.sequelize.transaction();
+    let donHang;
     try {
-        // Tạo đơn hàng
-        const donHang = await db.DonHang.create({
+        donHang = await db.DonHang.create({
             nguoidung_id,
             tongtien: gioHang.tongtien,
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
-            diachi: diachi,
-            sdt: sdt,
+            diachi,
+            sdt,
             phuongthucthanhtoan
         }, { transaction });
 
         for (const item of gioHang.ChiTietGioHang) {
             if (item.SanPham.soluong < item.soluong)
-                throw {
-                    status: 400, message: `Sản phẩm ${item.SanPham.name} không đủ tồn kho`
-                };
+                throw { status: 400, message: `Sản phẩm ${item.SanPham.ten} không đủ tồn kho` };
 
             await db.ChiTietDonHang.create({
                 donhang_id: donHang.donhang_id,
@@ -277,22 +275,24 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
             });
         }
 
-        // Xóa giỏ hàng (cascade sẽ xóa chi tiết)
-        await gioHang.destroy({ transaction });
         await transaction.commit();
-
-        if (phuongthucthanhtoan === PhuongThucThanhToan.MOMO) {
-            const { momoResult } = await createMomoPayment({
-                donhang_id: donHang.donhang_id,
-                sotien: Number(gioHang.tongtien),
-                orderInfo: `Thanh toan don hang ${donHang.donhang_id}`,
-            });
-            return { donHang, payUrl: momoResult.payUrl };
-        }
-
-        return { donHang };
     } catch (error) {
         await transaction.rollback();
         throw error;
     }
+
+    if (phuongthucthanhtoan === PhuongThucThanhToan.MOMO) {
+        const sotien = Number(gioHang.tongtien);
+        if (sotien > 50000000) throw { status: 400, message: 'Số tiền vượt quá giới hạn MoMo (50,000,000 VND)' };
+
+        const { momoResult } = await createMomoPayment({
+            donhang_id: donHang.donhang_id,
+            sotien: Number(gioHang.tongtien),
+            orderInfo: `Thanh toan don hang ${donHang.donhang_id}`,
+        });
+        return { donHang, payUrl: momoResult.payUrl };
+    }
+
+    await db.GioHang.destroy({ where: { nguoidung_id } });
+    return { donHang };
 };

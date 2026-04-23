@@ -31,6 +31,7 @@ export const momoIPN = async (req, res) => {
 
 
 export const momoReturn = async (req, res) => {
+    console.log('MoMo return query:', JSON.stringify(req.query, null, 2));
     const result = verifyMomoReturn(req.query);
     return res.status(200).json({ success: true, data: result });
 };

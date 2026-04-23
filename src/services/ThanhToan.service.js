@@ -1,14 +1,20 @@
 import axios from 'axios';
 import db from '../models/index.js';
 import { buildMomoPaymentBody, verifyMomoSignature, MOMO_ENDPOINT } from '../utils/momo.util.js';
-import { TrangThaiThanhToan, PhuongThucThanhToan } from '../constants/index.js';
+import { TrangThaiThanhToan, PhuongThucThanhToan, TrangThaiDonHang } from '../constants/index.js';
 
 
 const callMomoAPI = async (body) => {
-    const { data } = await axios.post(MOMO_ENDPOINT, body, {
-        headers: { 'Content-Type': 'application/json' },
-    });
-    return data;
+    try {
+        const { data } = await axios.post(MOMO_ENDPOINT, body, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return data;
+    } catch (error) {
+        console.log('MoMo error response:', JSON.stringify(error.response?.data, null, 2));
+        console.log('MoMo request body:', JSON.stringify(body, null, 2));
+        throw error;
+    }
 };
 
 export const createMomoPayment = async ({ donhang_id, sotien, orderInfo }) => {
@@ -72,6 +78,15 @@ export const processMomoIPN = async (ipnPayload) => {
         momo_pay_type: payType,
         momo_time_pay: isSuccess ? new Date(Number(responseTime)) : null,
     });
+
+    if (isSuccess) {
+        const donHang = await db.DonHang.findByPk(thanhtoan.donhang_id);
+        if (donHang) {
+            await donHang.update({ trangthai: TrangThaiDonHang.DA_THANH_TOAN });
+            // Xóa giỏ hàng của user
+            await db.GioHang.destroy({ where: { nguoidung_id: donHang.nguoidung_id } });
+        }
+    }
 
 
     return { isSuccess, orderId, transId, amount, message };

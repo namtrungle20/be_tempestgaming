@@ -50,7 +50,7 @@ const buildCallbackRawSignature = (p) =>
 /**
  * Build toàn bộ request body để gọi API tạo payment URL
  */
-export const buildMomoPaymentBody = ({ orderId, amount, orderInfo, requestType = 'payWithMethod' }) => {
+export const buildMomoPaymentBody = ({ orderId, amount, orderInfo, requestType = 'payWithATM' }) => {
     const requestId = `${MOMO_PARTNER_CODE}_${Date.now()}`;
     const extraData = '';
 
