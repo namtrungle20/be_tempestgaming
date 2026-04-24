@@ -12,7 +12,7 @@ const app = express()
 const port = process.env.PORT;
 
 app.use(cors({
-  origin: true, // Cho phép tất cả các nguồn (Nếu dùng ngrok nên để *)
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
@@ -22,9 +22,11 @@ app.use(cors({
     'Accept',
     'ngrok-skip-browser-warning'
   ],
-  credentials: true, // Cho phép gửi cookie/token
+  credentials: true,
   optionsSuccessStatus: 200
 }));
+
+app.options('/{*path}', cors());
 
 app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:;");
@@ -32,19 +34,15 @@ app.use((req, res, next) => {
 });
 
 
-app.use(express.static(path.join(process.cwd())));
-app.use(express.json())
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.get('/', (req, res) => {
-//   res.send('Đây là Shop Tempest Gaming đc sử dụng bởi Nodejs')
-// })
+app.use('/uploads', express.static(path.join(import.meta.dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   const filePath = path.join(process.cwd(), 'index.html');
+  res.sendFile(filePath);
 });
-
-app.use('/uploads', express.static(path.join(import.meta.dirname, 'uploads')));
 
 
 app.get('/api/health', async (req, res) => {

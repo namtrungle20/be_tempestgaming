@@ -5,15 +5,21 @@ import ResponseHinhAnhSanPham from '../dtos/responses/ResponseHinhAnhSanPham.js'
 
 const includeProduct = { model: db.SanPham, as: 'SanPham', attributes: ['sanpham_id', 'name', 'gia', 'url'] };
 
-export const layHinhAnhSanPhams = async ({ page = 1 }) => {
-    const data = await db.HinhAnhSanPham.findAll({
-        include: [includeProduct],
-        limit: 10,
-        offset: (page - 1) * 10
-    });
+export const layHinhAnhSanPhams = async ({ page = 1, sanpham_id }) => {
+    const where = sanpham_id ? { sanpham_id } : {};
+
+    const [data, total] = await Promise.all([
+        db.HinhAnhSanPham.findAll({
+            where,
+            include: [includeProduct],
+            limit: 10,
+            offset: (page - 1) * 10
+        }),
+        db.HinhAnhSanPham.count({ where })
+    ]);
     // Map qua DTO
     const formattedData = data.map(item => new ResponseHinhAnhSanPham(item));
-    return { data: formattedData, total: await db.HinhAnhSanPham.count() };
+    return { data: formattedData, total };
 }
 
 export const layHinhAnhSanPhamTheoId = async (id) => {
