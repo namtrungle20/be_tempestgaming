@@ -23,17 +23,63 @@ export const layDonHangs = async ({ search = '', page = 1, trangthai }) => {
 
 export const layDonHangTheoId = async (id) => {
     const donhang = await db.DonHang.findByPk(id, {
+        attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'createdAt', 'updatedAt'],
         include: [
-            { model: db.NguoiDung, as: 'NguoiDung' },
+            {
+                model: db.NguoiDung,
+                as: 'NguoiDung',
+                attributes: ['email', 'diachi', 'sdt']
+            },
             {
                 model: db.ChiTietDonHang,
-                include: [{ model: db.SanPham, as: 'SanPham' }]
+                as: 'ChiTietDonHangs',
+                attributes: ['id', 'soluong', 'dongia'],
+                include: [{
+                    model: db.SanPham,
+                    as: 'SanPham',
+                    attributes: ['sanpham_id', 'name', 'gia']
+                }]
             }
         ]
     })
     if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng' }
     return donhang
 }
+
+export const layDonHangTheoNguoiDung = async (nguoidung_id, { page = 1, trangthai }) => {
+    const PAGE_SIZE = 10;
+    const offset = (page - 1) * PAGE_SIZE;
+    const where = { nguoidung_id };
+    if (trangthai !== undefined) where.trangthai = trangthai;
+
+    const [data, total] = await Promise.all([
+        db.DonHang.findAll({
+            where,
+            order: [['created_at', 'DESC']],
+            limit: PAGE_SIZE,
+            offset,
+            attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'createdAt', 'updatedAt'],
+            include: [{
+                model: db.ChiTietDonHang,
+                as: 'ChiTietDonHangs',
+                attributes: ['id', 'soluong', 'dongia'],
+                include: [{
+                    model: db.SanPham,
+                    as: 'SanPham',
+                    attributes: ['sanpham_id', 'name', 'gia'],
+                    include: [{
+                        model: db.HinhAnhSanPham,  // ← thêm
+                        as: 'HinhAnhSanPham',
+                        attributes: ['image_url'],
+                        limit: 1,                   // chỉ lấy 1 ảnh đại diện
+                    }]
+                }]
+            }]
+        }),
+        db.DonHang.count({ where })
+    ]);
+    return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) };
+};
 
 export const xoaDonHang = async (id) => {
     const donhang = await db.DonHang.findByPk(id, {
@@ -64,9 +110,7 @@ export const xoaDonHang = async (id) => {
 }
 
 export const capNhatDonHang = async (id, data) => {
-    const donhang = await db.DonHang.findByPk(id, {
-        include: [{ model: db.ChiTietDonHang }]
-    });
+    const donhang = await db.DonHang.findByPk(id);
     if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng' };
 
     const oldStatus = donhang.trangthai;
@@ -78,7 +122,12 @@ export const capNhatDonHang = async (id, data) => {
 
         // Nếu chuyển từ trạng thái khác (không phải hủy) sang hủy -> hoàn kho
         if (newStatus === TrangThaiDonHang.DA_HUY && oldStatus !== TrangThaiDonHang.DA_HUY) {
-            for (const item of donhang.ChiTietDonHang) {
+            const chiTiet = await db.ChiTietDonHang.findAll({
+                where: { donhang_id: id },
+                transaction
+            });
+
+            for (const item of chiTiet) {
                 await db.SanPham.increment('soluong', {
                     by: item.soluong,
                     where: { sanpham_id: item.sanpham_id },
@@ -86,7 +135,6 @@ export const capNhatDonHang = async (id, data) => {
                 });
             }
         }
-        // (Tuỳ chọn) Nếu từ hủy sang trạng thái khác, có thể trừ lại kho (nhưng hiếm dùng)
         await transaction.commit();
     } catch (error) {
         await transaction.rollback();

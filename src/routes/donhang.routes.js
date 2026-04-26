@@ -11,6 +11,8 @@ const router = Router();
 const adminOnly = requestVaiTro([VaiTroNguoiDung.ADMIN]);
 const adminOrUser = requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER]);
 
+router.get('/me', adminOrUser, asyncHandler(DonHangController.getMyDonHangs));
+
 // Đơn hàng
 router.get('/', asyncHandler(DonHangController.getDonHangs));
 router.get('/:id', asyncHandler(DonHangController.getDonHangById));

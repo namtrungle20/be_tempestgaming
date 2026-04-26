@@ -10,6 +10,11 @@ export const getDonHangById = async (req, res) => {
     return res.status(200).json({ message: 'Lấy thông tin đơn hàng thành công', data })
 }
 
+export const getMyDonHangs = async (req, res) => {
+    const result = await DonHangService.layDonHangTheoNguoiDung(req.user.nguoidung_id, req.query);
+    return res.status(200).json({ message: 'Lấy lịch sử đơn hàng thành công', ...result });
+};
+
 export const xoaDonHang = async (req, res) => {
     await DonHangService.xoaDonHang(req.params.id)
     return res.status(200).json({ message: 'Đơn hàng đã đánh dấu là Đã Hủy' })
