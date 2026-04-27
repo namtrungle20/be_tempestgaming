@@ -32,7 +32,7 @@ export const momoIPN = async (req, res) => {
 
 export const momoReturn = async (req, res) => {
     const result = verifyMomoReturn(req.query);
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL;
     const query = new URLSearchParams({
         orderId: result.orderId,
         isSuccess: result.isSuccess,
