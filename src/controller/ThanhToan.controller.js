@@ -31,9 +31,17 @@ export const momoIPN = async (req, res) => {
 
 
 export const momoReturn = async (req, res) => {
-    console.log('MoMo return query:', JSON.stringify(req.query, null, 2));
     const result = verifyMomoReturn(req.query);
-    return res.status(200).json({ success: true, data: result });
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+    const query = new URLSearchParams({
+        orderId: result.orderId,
+        isSuccess: result.isSuccess,
+        resultCode: result.resultCode,
+        message: result.message,
+        amount: result.amount,
+    });
+
+    return res.redirect(`${frontendUrl}/payment/result?${query}`);
 };
 
 export const getPaymentDetail = async (req, res) => {
