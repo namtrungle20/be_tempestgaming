@@ -27,3 +27,10 @@ export const logout = async (req, res) => {
 export const getMe = async (req, res) => {
     return res.status(200).json({ success: true, data: req.user })
 }
+
+export const authGoogle = async (req, res) => {
+    await AuthService.loginWithGoogle(token.res)
+    return res.status(200).json({
+        success: true, data: { accessToken }
+    })
+}

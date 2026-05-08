@@ -6,6 +6,7 @@ import db from '../models/index.js'
 import ResponseNguoiDung from '../dtos/responses/ResponseNguoiDung.js'
 import { VaiTroNguoiDung, TrangThaiTaiKhoan } from '../constants/index.js'
 import { verifyRefreshToken } from '../helpers/refreshToken.helper.js'
+import admin from '../config/firebase.config.js'
 
 export const generateAccessToken = (nguoidung_id, vaitro) =>
     jwt.sign({ nguoidung_id, vaitro }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRES_IN })
@@ -44,7 +45,7 @@ export const dangNhap = async ({ email, sdt, password }, res) => {
 
     if (nguoidung.trangthai === TrangThaiTaiKhoan.BI_KHOA)
         throw { status: 403, message: 'Tài khoản đã bị khóa. Vui lòng liên hệ Admin.' }
-     if (nguoidung.trangthai === TrangThaiTaiKhoan.DA_XOA)
+    if (nguoidung.trangthai === TrangThaiTaiKhoan.DA_XOA)
         throw { status: 403, message: 'Tài khoản đã bị Xóa. Vui lòng liên hệ Admin.' }
 
     const accessToken = generateAccessToken(nguoidung.nguoidung_id, nguoidung.vaitro)
@@ -69,4 +70,31 @@ export const dangXuat = async (token, res) => {
     if (!session) throw { status: 403, message: 'Refresh token không hợp lệ' }
     await db.Session.update({ is_revoked: true }, { where: { refreshToken: token } })
     res.clearCookie('refreshToken')
+}
+
+export const loginWithGoogle = async (token, res) => {
+    let decoded;
+    try {
+        decoded = await admin.auth().verifyIdToken(token);
+    } catch {
+        throw { status: 401, message: 'Google token không hợp lệ' };
+    }
+
+    const { uid, email } = decoded;
+
+    let nguoidung = await db.NguoiDung.findOne({
+        where: { [db.Sequelize.Op.or]: [{ google_id: uid }, { email }] }
+    });
+
+    if (!nguoidung) {
+        nguoidung = await db.NguoiDung.create({
+            nguoidung_id: uuidv7(),
+            email,
+            google_id: uid,
+            vaitro: VaiTroNguoiDung.USER,
+            password: null,
+        });
+    } else if (!nguoidung.google_id) {
+        await nguoidung.update({ google_id: uid });
+    }
 }
