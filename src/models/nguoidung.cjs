@@ -25,21 +25,26 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
-    ho_ten: {
+    google_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
+    name: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true,
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     sdt: {
       type: DataTypes.STRING, // Nên để STRING vì số điện thoại có thể có số 0 ở đầu
-      allowNull: false
+      allowNull: true
     },
     diachi: DataTypes.STRING,
     avatar: DataTypes.STRING,

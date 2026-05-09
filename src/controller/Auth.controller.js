@@ -28,9 +28,9 @@ export const getMe = async (req, res) => {
     return res.status(200).json({ success: true, data: req.user })
 }
 
-export const authGoogle = async (req, res) => {
-    await AuthService.loginWithGoogle(token.res)
-    return res.status(200).json({
-        success: true, data: { accessToken }
-    })
-}
+export const loginGoogle = async (req, res) => {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ success: false, message: 'Thiếu idToken' });
+    const data = await AuthService.loginWithGoogle(idToken, res);
+    return res.status(200).json({ success: true, data });
+};

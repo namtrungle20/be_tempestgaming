@@ -5,6 +5,7 @@ import Joi from "joi";
 
 class ThemNguoiDungRequest {
     constructor(data) {
+        this.name = data.name;
         this.email = data.email;
         this.password = data.password
         this.sdt = data.sdt;
@@ -21,9 +22,10 @@ class ThemNguoiDungRequest {
 
     static validate(data) {
         const schema = Joi.object({
+            name: Joi.string().min(2).max(100).required(),
             email: Joi.string().email().optional(),
             password: Joi.string().min(6).max(100).required(),
-            sdt: Joi.string().optional(),
+            sdt: Joi.string().min(9).max(15).required(),
             diachi: Joi.string().max(255).allow(""),
             avatar: Joi.string()
                 .uri() // nếu bạn lưu URL ảnh

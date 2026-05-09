@@ -14,4 +14,6 @@ router.post('/refresh', asyncHandler(AuthController.refresh));
 router.post('/logout', asyncHandler(AuthController.logout));
 router.get('/me', requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER]), asyncHandler(AuthController.getMe))
 
+router.post('/google', asyncHandler(AuthController.loginGoogle))
+
 export default router;
