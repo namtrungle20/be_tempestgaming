@@ -30,7 +30,7 @@ export const getMe = async (req, res) => {
 
 export const loginGoogle = async (req, res) => {
     const { idToken } = req.body;
-    if (!idToken) return res.status(400).json({ success: false, message: 'Thiếu idToken' });
+    if (!idToken) return res.status(400).json({ success: false, message: 'Bạn không đăng nhập vào Google' });
     const data = await AuthService.loginWithGoogle(idToken, res);
     return res.status(200).json({ success: true, data });
 };

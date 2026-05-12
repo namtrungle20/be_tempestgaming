@@ -83,7 +83,6 @@ export const loginWithGoogle = async (idToken, res) => {
     } catch {
         throw { status: 401, message: 'Google token không hợp lệ' };
     }
-    dun
     const { uid, email, name } = decoded;
 
     let nguoidung = await db.NguoiDung.findOne({
