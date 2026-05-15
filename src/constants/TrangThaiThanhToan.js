@@ -9,5 +9,5 @@ export const TrangThaiThanhToan = {
     CHO_THANH_TOAN: 0,
     THANH_CONG: 1,
     THAT_BAI: 2,
-    HOAN_TIEN: 3,
+    // HOAN_TIEN: 3,
 };

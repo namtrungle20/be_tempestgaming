@@ -3,7 +3,6 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 import validate from '../middlewares/validate.middleware.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js';
 import * as GioHangController from '../controller/GioHang.controller.js';
-import * as ChiTietGioHangController from '../controller/ChiTietGioHang.controller.js';
 import ThemChiTietGioHangUserRequest from '../dtos/requests/ChiTietGioHang/ThemChiTietGioHangRequest.js';
 import CapNhatSoLuongRequest from '../dtos/requests/GioHang/CapNhapSoLuongRequest.js';
 import ThanhToanRequest from '../dtos/requests/GioHang/ThanhToanRequest.js';
@@ -27,10 +26,5 @@ router.get('/', adminOnly, asyncHandler(GioHangController.getGioHangs));
 router.get('/:id', adminOnly, asyncHandler(GioHangController.getGioHangById));
 router.delete('/:id', adminOnly, asyncHandler(GioHangController.xoaGioHang));
 
-router.get('/chitiet/all', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangs));
-router.get('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangById));
-router.get('/chitiet/giohang/:giohang_id', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangByGioHangId));
-router.put('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.themHoacCapNhatChiTietGioHang));
-router.delete('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.xoaChiTietGioHang));
 
 export default router;

@@ -9,16 +9,9 @@ module.exports = {
       defaultValue: 0,
       allowNull: false,
     });
-
-    // Thêm cột dongia vào bảng ChiTietGioHang
-    await queryInterface.addColumn('ChiTietGioHangs', 'dongia', {
-      type: Sequelize.DECIMAL(18, 2),
-      allowNull: false,
-    });
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn('GioHangs', 'tongtien');
-    await queryInterface.removeColumn('ChiTietGioHangs', 'dongia');
   }
 };

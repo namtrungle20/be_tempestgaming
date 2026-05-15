@@ -1,0 +1,8 @@
+Quản lý tài khoản riêng của user (usecase Tổng quan)
+Quản lý giỏ hàng (usecase Giỏ Hàng) sai thanh toán, thanh toán tạo giỏ hàng, login
+Quản lý đơn hàng (usecase đơn hàng và thanh toán) login, tạo đơn hàng
+Quản lý đánh giá (thiếu đăng nhập, bỏ xóa đánh giá admin, include viết đánh giá với sửa và xóa)
+quản lý vai trò gôm vào quản lý tài khoản (usecase vai trò)
+
+erd
+Table thanh toán bỏ đi trạng thái

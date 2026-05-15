@@ -129,44 +129,44 @@ import { createMomoPayment } from './ThanhToan.service.js';
 
 
 // Helper: cập nhật tổng tiền giỏ hàng
-const capNhatTongTien = async (giohang_id) => {
-    const chiTiets = await db.ChiTietGioHang.findAll({
-        where: { giohang_id },
+// export const layGioHang = async (nguoidung_id) => {
+//     const items = await db.GioHang.findAll({
+//         where: { nguoidung_id },
+//         include: [{ model: db.SanPham, as: 'SanPham' }]
+//     });
+//     let tongtien = 0;
+//     for (const item of items) {
+//         tongtien += item.soluong * item.SanPham.gia;
+//     }
+//     return { items, tongtien };
+// };
+
+const capNhatTongTien = async (nguoidung_id) => {
+    const items = await db.GioHang.findAll({
+        where: { nguoidung_id },
         include: [{ model: db.SanPham, as: 'SanPham' }]
     });
-    let tong = 0;
-    for (const ct of chiTiets) {
-        tong += ct.soluong * ct.SanPham.gia;
+
+    for (const item of items) {
+        const tongtien = item.soluong * parseFloat(item.SanPham.gia);
+        await item.update({ tongtien }); // ← cập nhật từng row
     }
-    await db.GioHang.update({ tongtien: tong }, { where: { giohang_id } });
 };
 
 // Lấy hoặc tạo giỏ hàng của user (đảm bảo luôn có)
 export const layHoacTaoGioHang = async (nguoidung_id) => {
-    let gioHang = await db.GioHang.findOne({
+    const items = await db.GioHang.findAll({
         where: { nguoidung_id },
-        include: [{
-            model: db.ChiTietGioHang,
-            as: 'ChiTietGioHang',
-            include: [{ model: db.SanPham, as: 'SanPham' }]
-        }]
+        include: [{ model: db.SanPham, as: 'SanPham' }]
     });
-    if (!gioHang) {
-        gioHang = await db.GioHang.create({
-            giohang_id: uuidv7(),
-            nguoidung_id,
-            tongtien: 0
-        });
-        gioHang.chi_tiet_gio_hangs = [];
-    }
-    return gioHang;
+    return items;
 };
 
 export const layDanhSachGioHang = async ({ page = 1, limit = 10 }) => {
     const offset = (page - 1) * limit;
     const { count, rows } = await db.GioHang.findAndCountAll({
         limit, offset,
-        include: [{ model: db.ChiTietGioHang, as: 'ChiTietGioHang' }]
+        include
     });
     return { data: rows, total: count, page, totalPages: Math.ceil(count / limit) };
 };
@@ -177,33 +177,30 @@ export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
     if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
     if (sanpham.soluong < soluong) throw { status: 400, message: 'Số lượng vượt quá tồn kho' };
 
-    let chiTiet = await db.ChiTietGioHang.findOne({
-        where: { giohang_id: gioHang.giohang_id, sanpham_id }
-    });
-    if (chiTiet) {
-        const newSoluong = chiTiet.soluong + soluong;
+    let item = await db.GioHang.findOne({ where: { nguoidung_id, sanpham_id } });
+    if (item) {
+        const newSoluong = item.soluong + soluong;
         if (sanpham.soluong < newSoluong) throw { status: 400, message: 'Tổng số lượng vượt tồn kho' };
-        chiTiet.soluong = newSoluong;
-        await chiTiet.save();
+        item.soluong = newSoluong;
+        await item.save();
     } else {
-        chiTiet = await db.ChiTietGioHang.create({
-            giohang_id: gioHang.giohang_id,
+        item = await db.GioHang.create({
+            giohang_id: uuidv7(),
+            nguoidung_id,
             sanpham_id,
             soluong,
-            dongia: sanpham.gia
+            tongtien: 0
         });
     }
-    await capNhatTongTien(gioHang.giohang_id);
-    return chiTiet;
+    await capNhatTongTien(nguoidung_id);
+    return item;
 };
 
 // Cập nhật số lượng sản phẩm trong giỏ
 export const capNhatSoLuong = async (nguoidung_id, sanpham_id, soluong) => {
     if (soluong < 0) throw { status: 400, message: 'Số lượng không hợp lệ' };
-    const gioHang = await db.GioHang.findOne({ where: { nguoidung_id } });
-    if (!gioHang) throw { status: 404, message: 'Giỏ hàng không tồn tại' };
-    const chiTiet = await db.ChiTietGioHang.findOne({
-        where: { giohang_id: gioHang.giohang_id, sanpham_id },
+    const chiTiet = await db.GioHang.findOne({
+        where: { nguoidung_id, sanpham_id },
         include: [{ model: db.SanPham, as: 'SanPham' }]
     });
     if (!chiTiet) throw { status: 404, message: 'Sản phẩm không có trong giỏ' };
@@ -217,14 +214,14 @@ export const capNhatSoLuong = async (nguoidung_id, sanpham_id, soluong) => {
         chiTiet.soluong = soluong;
         await chiTiet.save();
     }
-    await capNhatTongTien(gioHang.giohang_id);
+    await capNhatTongTien(nguoidung_id);
 };
 
 // Xóa sản phẩm khỏi giỏ
 export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
     const gioHang = await db.GioHang.findOne({ where: { nguoidung_id } });
     if (!gioHang) throw { status: 404, message: 'Giỏ hàng không tồn tại' };
-    const deleted = await db.ChiTietGioHang.destroy({
+    const deleted = await db.GioHang.destroy({
         where: { giohang_id: gioHang.giohang_id, sanpham_id }
     });
     if (!deleted) throw { status: 404, message: 'Sản phẩm không có trong giỏ' };
@@ -233,33 +230,33 @@ export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
 
 // Thanh toán: chuyển giỏ hàng thành đơn hàng
 export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan = PhuongThucThanhToan.TAI_CUA_HANG }) => {
-    const gioHang = await db.GioHang.findOne({
+    console.log('nguoidung_id nhận được:', nguoidung_id);
+    const items = await db.GioHang.findAll({
         where: { nguoidung_id },
-        include: [{
-            model: db.ChiTietGioHang,
-            as: 'ChiTietGioHang',
-            include: [{ model: db.SanPham, as: 'SanPham' }]
-        }]
+        include: [{ model: db.SanPham, as: 'SanPham' }]
     });
-    if (!gioHang || !gioHang.ChiTietGioHang.length) {
-        throw { status: 400, message: 'Giỏ hàng trống, không thể thanh toán' };
+    console.log('items tìm được:', JSON.stringify(items, null, 2));
+    console.log('items.length:', items.length);
+    if (!items || !items.length) {
+        throw { status: 404, message: 'Giỏ hàng trống, không thể thanh toán' };
     }
+
+    const tongtien = items.reduce((sum, item) => sum + item.soluong * parseFloat(item.SanPham.gia), 0);
 
     const transaction = await db.sequelize.transaction();
     let donHang;
     try {
         donHang = await db.DonHang.create({
-            nguoidung_id,
-            tongtien: gioHang.tongtien,
+            nguoidung_id, tongtien,
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
-            diachi,
-            sdt,
-            phuongthucthanhtoan
+            diachi, sdt, phuongthucthanhtoan
         }, { transaction });
+        console.log('Tạo đơn hàng OK:', donHang.donhang_id);
 
-        for (const item of gioHang.ChiTietGioHang) {
+        for (const item of items) {
+            console.log('Xử lý item:', item.sanpham_id);
             if (item.SanPham.soluong < item.soluong)
-                throw { status: 400, message: `Sản phẩm ${item.SanPham.ten} không đủ tồn kho` };
+                throw { status: 400, message: `Sản phẩm ${item.SanPham.name} không đủ tồn kho` };
 
             await db.ChiTietDonHang.create({
                 donhang_id: donHang.donhang_id,
@@ -275,24 +272,26 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
             });
         }
 
+        // ✅ Xóa giỏ hàng sau khi tạo đơn thành công
+        await db.GioHang.destroy({ where: { nguoidung_id }, transaction });
+        console.log('Xóa giỏ hàng OK');
         await transaction.commit();
     } catch (error) {
         await transaction.rollback();
+        console.log('LỖI THỰC SỰ:', error);
         throw error;
     }
 
     if (phuongthucthanhtoan === PhuongThucThanhToan.MOMO) {
-        const sotien = Number(gioHang.tongtien);
-        if (sotien > 50000000) throw { status: 400, message: 'Số tiền vượt quá giới hạn MoMo (50,000,000 VND)' };
-
+        const sotien = Number(tongtien);
+        if (sotien > 50000000) throw { status: 400, message: 'Số tiền vượt quá giới hạn MoMo' };
         const { momoResult } = await createMomoPayment({
             donhang_id: donHang.donhang_id,
-            sotien: Number(gioHang.tongtien),
+            sotien,
             orderInfo: `Thanh toan don hang ${donHang.donhang_id}`,
         });
         return { donHang, payUrl: momoResult.payUrl };
     }
 
-    await db.GioHang.destroy({ where: { nguoidung_id } });
     return { donHang };
 };
