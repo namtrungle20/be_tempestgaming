@@ -7,78 +7,16 @@ import { createMomoPayment } from './ThanhToan.service.js';
 import { upsertChiTiet, capNhatTongTienGioHang } from './ChiTietGioHang.service.js'
 
 
-<<<<<<< HEAD
-// Helper: cập nhật tổng tiền giỏ hàng
-// export const layGioHang = async (nguoidung_id) => {
-//     const items = await db.GioHang.findAll({
-//         where: { nguoidung_id },
-//         include: [{ model: db.SanPham, as: 'SanPham' }]
-//     });
-//     let tongtien = 0;
-//     for (const item of items) {
-//         tongtien += item.soluong * item.SanPham.gia;
-//     }
-//     return { items, tongtien };
-// };
-
-const capNhatTongTien = async (nguoidung_id) => {
-    const items = await db.GioHang.findAll({
-        where: { nguoidung_id },
-        include: [{ model: db.SanPham, as: 'SanPham' }]
-    });
-
-    for (const item of items) {
-        const tongtien = item.soluong * parseFloat(item.SanPham.gia);
-        await item.update({ tongtien }); // ← cập nhật từng row
-    }
-};
-
-// Lấy hoặc tạo giỏ hàng của user (đảm bảo luôn có)
-=======
 // USER
->>>>>>> recover-branch
 export const layHoacTaoGioHang = async (nguoidung_id) => {
-    const items = await db.GioHang.findAll({
+    let gioHang = await db.GioHang.findOne({
         where: { nguoidung_id },
-        include: [{ model: db.SanPham, as: 'SanPham' }]
+        include: [{
+            model: db.ChiTietGioHang,
+            as: 'ChiTietGioHang',
+            include: [{ model: db.SanPham, as: 'SanPham' }]
+        }]
     });
-<<<<<<< HEAD
-    return items;
-};
-
-export const layDanhSachGioHang = async ({ page = 1, limit = 10 }) => {
-    const offset = (page - 1) * limit;
-    const { count, rows } = await db.GioHang.findAndCountAll({
-        limit, offset,
-        include
-    });
-    return { data: rows, total: count, page, totalPages: Math.ceil(count / limit) };
-};
-// Thêm sản phẩm vào giỏ
-export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
-    const gioHang = await layHoacTaoGioHang(nguoidung_id);
-    const sanpham = await db.SanPham.findByPk(sanpham_id);
-    if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
-    if (sanpham.soluong < soluong) throw { status: 400, message: 'Số lượng vượt quá tồn kho' };
-
-    let item = await db.GioHang.findOne({ where: { nguoidung_id, sanpham_id } });
-    if (item) {
-        const newSoluong = item.soluong + soluong;
-        if (sanpham.soluong < newSoluong) throw { status: 400, message: 'Tổng số lượng vượt tồn kho' };
-        item.soluong = newSoluong;
-        await item.save();
-    } else {
-        item = await db.GioHang.create({
-            giohang_id: uuidv7(),
-            nguoidung_id,
-            sanpham_id,
-            soluong,
-            tongtien: 0
-        });
-    }
-    await capNhatTongTien(nguoidung_id);
-    return item;
-=======
     if (!gioHang) {
         gioHang = await db.GioHang.create({
             giohang_id: uuidv7(),
@@ -90,6 +28,7 @@ export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
     return gioHang;
 };
 
+
 // Thêm sản phẩm vào giỏ
 export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
     const gioHang = await layHoacTaoGioHang(nguoidung_id);
@@ -98,34 +37,16 @@ export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
     })
     const soLuongMoi = chiTiet ? chiTiet.soluong + soluong : soluong
     return await upsertChiTiet({ giohang_id: gioHang.giohang_id, sanpham_id, soluong: soLuongMoi })
->>>>>>> recover-branch
+
 };
 
 // Cập nhật số lượng sản phẩm trong giỏ
 export const capNhatSoLuong = async (nguoidung_id, sanpham_id, soluong) => {
     if (soluong < 0) throw { status: 400, message: 'Số lượng không hợp lệ' };
-<<<<<<< HEAD
-    const chiTiet = await db.GioHang.findOne({
-        where: { nguoidung_id, sanpham_id },
-        include: [{ model: db.SanPham, as: 'SanPham' }]
-    });
-    if (!chiTiet) throw { status: 404, message: 'Sản phẩm không có trong giỏ' };
-    if (soluong === 0) {
-        await chiTiet.destroy();
-    } else {
-        if (parseInt(chiTiet.SanPham.soluong, 10) < parseInt(soluong, 10))
-            throw {
-                status: 400, message: 'Số lượng vượt quá tồn kho'
-            };
-        chiTiet.soluong = soluong;
-        await chiTiet.save();
-    }
-    await capNhatTongTien(nguoidung_id);
-=======
     const gioHang = await db.GioHang.findOne({ where: { nguoidung_id } });
     if (!gioHang) throw { status: 404, message: 'Giỏ hàng không tồn tại' }
     return await upsertChiTiet({ giohang_id: gioHang.giohang_id, sanpham_id, soluong })
->>>>>>> recover-branch
+
 };
 
 // Xóa sản phẩm khỏi giỏ
