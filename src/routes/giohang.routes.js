@@ -12,7 +12,6 @@ import { VaiTroNguoiDung } from '../constants/index.js';
 const router = Router();
 
 const adminOnly = requestVaiTro([VaiTroNguoiDung.ADMIN]);
-const userOnly = requestVaiTro([VaiTroNguoiDung.USER]);
 const adminOrUser = requestVaiTro([VaiTroNguoiDung.USER, VaiTroNguoiDung.ADMIN])
 
 // USER routes
@@ -25,12 +24,12 @@ router.post('/me/thanhtoan', adminOrUser, validate(ThanhToanRequest), asyncHandl
 // ADMIN routes (giữ nguyên)
 router.get('/', adminOnly, asyncHandler(GioHangController.getGioHangs));
 router.get('/:id', adminOnly, asyncHandler(GioHangController.getGioHangById));
-router.delete('/:id', adminOnly, asyncHandler(GioHangController.xoaGioHang));
+router.delete('/:id', adminOnly, asyncHandler(GioHangController.deleteGioHang));
 
 router.get('/chitiet/all', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangs));
 router.get('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangById));
-router.get('/chitiet/giohang/:giohang_id', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangByGioHangId));
-router.put('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.themHoacCapNhatChiTietGioHang));
+router.get('/chitiet/giohang/:id', adminOnly, asyncHandler(ChiTietGioHangController.getChiTietGioHangByGioHangId));
+router.put('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.capNhatSoLuongChiTietGioHang));
 router.delete('/chitiet/:id', adminOnly, asyncHandler(ChiTietGioHangController.xoaChiTietGioHang));
 
 export default router;

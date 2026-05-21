@@ -18,7 +18,13 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('GioHangs', 'tongtien');
-    await queryInterface.removeColumn('ChiTietGioHangs', 'dongia');
+    const tableName = 'ChiTietGioHangs';
+    const columns = await queryInterface.describeTable(tableName);
+    if (columns.dongia) {
+      await queryInterface.removeColumn(tableName, 'dongia');
+    }
+    if (columns.tongtien) {
+      await queryInterface.removeColumn(tableName, 'tongtien');
+    }
   }
 };
