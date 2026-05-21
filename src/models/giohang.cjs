@@ -12,7 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       GioHang.belongsTo(models.NguoiDung, { foreignKey: 'nguoidung_id' });
-      GioHang.belongsTo(models.SanPham, { foreignKey: 'sanpham_id' });
+      GioHang.hasMany(models.ChiTietGioHang, {
+        foreignKey: 'giohang_id',
+        as: 'ChiTietGioHang'
+      });
     }
   }
   GioHang.init({
@@ -33,11 +36,6 @@ module.exports = (sequelize, DataTypes) => {
         model: 'NguoiDungs',
         key: 'nguoidung_id'
       }
-    },
-    soluong: DataTypes.INTEGER,
-    sanpham_id: {
-      type: DataTypes.STRING(10),
-      allowNull: false
     },
     tongtien: {
       type: DataTypes.DECIMAL(18, 2),
