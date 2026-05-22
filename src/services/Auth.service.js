@@ -93,6 +93,7 @@ export const loginWithGoogle = async (idToken, res) => {
         nguoidung = await db.NguoiDung.create({
             nguoidung_id: uuidv7(),
             name,
+            sdt: null,
             email,
             google_id: uid,
             vaitro: VaiTroNguoiDung.USER,
