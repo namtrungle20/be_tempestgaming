@@ -1,4 +1,10 @@
 import * as SanPhamService from '../services/SanPham.service.js'
+import multer from 'multer';
+import { fullImportFromExcel } from '../services/Import.Excel.service.js';
+
+
+const uploadExcelMiddleware = multer({ storage: multer.memoryStorage() }).single('file');
+export const uploadExcel = uploadExcelMiddleware;
 
 export const getSanPhams = async (req, res) => {
     const result = await SanPhamService.laySanPham(req.query)
@@ -39,3 +45,16 @@ export const deleteSanPham = async (req, res) => {
     await SanPhamService.xoaSanPham(req.params.id)
     return res.status(200).json({ success: true, message: 'Xóa sản phẩm thành công' })
 }
+
+//EXCEL
+export const fullImport = async (req, res) => {
+    if (!req.file) throw { status: 400, message: 'Vui lòng upload file Excel' };
+    const results = await fullImportFromExcel(req.file.buffer);
+    const total = Object.values(results).reduce((acc, r) => acc + r.success.length, 0);
+    const errors = Object.values(results).reduce((acc, r) => acc + r.errors.length, 0);
+    return res.status(200).json({
+        success: true,
+        message: `Import xong: ${total} thành công, ${errors} lỗi`,
+        data: results,
+    });
+};
