@@ -25,7 +25,7 @@ export const layTatCaNguoiDung = async ({ filter = {}, pagination = {}, sort = {
 
     const { count, rows } = await db.NguoiDung.findAndCountAll({
         where,
-        attributes: ['nguoidung_id', 'email', 'sdt', 'vaitro', 'trangthai'],
+        attributes: ['nguoidung_id', 'name', 'email', 'sdt', 'vaitro', 'trangthai', 'ngayvao', 'diachi', 'avatar'],
         limit, offset,
         order: [[orderField, orderDir]],
         raw: true
@@ -39,7 +39,7 @@ export const layNguoiDungTheoId = async (id) => {
             nguoidung_id: id,
             trangthai: { [Op.ne]: TrangThaiTaiKhoan.DA_XOA }
         },
-        attributes: ['nguoidung_id', 'email', 'sdt', 'diachi', 'avatar', 'vaitro', 'trangthai', 'ngayvao'],
+        attributes: ['nguoidung_id', 'name', 'email', 'sdt', 'diachi', 'avatar', 'vaitro', 'trangthai', 'ngayvao'],
         raw: true
     })
     if (!user) throw { status: 404, message: 'Không tìm thấy người dùng' }

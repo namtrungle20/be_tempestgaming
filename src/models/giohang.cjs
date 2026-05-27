@@ -25,10 +25,6 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4, // Đảm bảo luôn có ID nếu quên tạo ở Controller
       allowNull: false
     },
-    // khachhang_id: {
-    //   type: DataTypes.UUID,           // Chuyển sang UUID để đồng bộ với khách vãng lai
-    //   allowNull: true
-    // },
     nguoidung_id: {
       type: DataTypes.UUID,           // PHẢI là UUID để khớp với model NguoiDung
       allowNull: true,

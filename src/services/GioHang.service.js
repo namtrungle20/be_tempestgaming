@@ -53,7 +53,7 @@ export const capNhatSoLuong = async (nguoidung_id, sanpham_id, soluong) => {
 export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
     const gioHang = await db.GioHang.findOne({ where: { nguoidung_id } });
     if (!gioHang) throw { status: 404, message: 'Giỏ hàng không tồn tại' };
-    const deleted = await db.GioHang.destroy({
+    const deleted = await db.ChiTietGioHang.destroy({
         where: { giohang_id: gioHang.giohang_id, sanpham_id }
     });
     if (!deleted) throw { status: 404, message: 'Sản phẩm không có trong giỏ' };
@@ -62,18 +62,23 @@ export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
 
 // Thanh toán: chuyển giỏ hàng thành đơn hàng
 export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan = PhuongThucThanhToan.TAI_CUA_HANG }) => {
-    console.log('nguoidung_id nhận được:', nguoidung_id);
+
     const items = await db.GioHang.findAll({
         where: { nguoidung_id },
-        include: [{ model: db.SanPham, as: 'SanPham' }]
+        include: [{
+            model: db.ChiTietGioHang,
+            as: 'ChiTietGioHang',
+            include: [{ model: db.SanPham, as: 'SanPham' }]
+        }]
     });
-    console.log('items tìm được:', JSON.stringify(items, null, 2));
-    console.log('items.length:', items.length);
-    if (!items || !items.length) {
-        throw { status: 404, message: 'Giỏ hàng trống, không thể thanh toán' };
-    }
 
-    const tongtien = items.reduce((sum, item) => sum + item.soluong * parseFloat(item.SanPham.gia), 0);
+    const giohang = items[0] // GioHang của user (thường chỉ có 1)
+    const chiTiets = giohang?.ChiTietGioHang || []
+
+    if (!chiTiets.length) {
+        throw { status: 404, message: 'Giỏ hàng trống, không thể thanh toán' }
+    }
+    const tongtien = chiTiets.reduce((sum, ct) => sum + ct.soluong * parseFloat(ct.SanPham.gia), 0);
 
     const transaction = await db.sequelize.transaction();
     let donHang;
@@ -83,34 +88,32 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
             diachi, sdt, phuongthucthanhtoan
         }, { transaction });
-        console.log('Tạo đơn hàng OK:', donHang.donhang_id);
 
-        for (const item of items) {
-            console.log('Xử lý item:', item.sanpham_id);
-            if (item.SanPham.soluong < item.soluong)
-                throw { status: 400, message: `Sản phẩm ${item.SanPham.name} không đủ tồn kho` };
+        for (const ct of chiTiets) {
+            if (ct.SanPham.soluong < ct.soluong)
+                throw { status: 400, message: `Sản phẩm ${ct.SanPham.name} không đủ tồn kho` }
+
 
             await db.ChiTietDonHang.create({
                 donhang_id: donHang.donhang_id,
-                sanpham_id: item.sanpham_id,
-                soluong: item.soluong,
-                dongia: item.SanPham.gia
+                sanpham_id: ct.sanpham_id,
+                soluong: ct.soluong,
+                dongia: ct.SanPham.gia
             }, { transaction });
 
             await db.SanPham.decrement('soluong', {
-                by: item.soluong,
-                where: { sanpham_id: item.sanpham_id },
+                by: ct.soluong,
+                where: { sanpham_id: ct.sanpham_id },
                 transaction
             });
         }
 
         // ✅ Xóa giỏ hàng sau khi tạo đơn thành công
         await db.GioHang.destroy({ where: { nguoidung_id }, transaction });
-        console.log('Xóa giỏ hàng OK');
+
         await transaction.commit();
     } catch (error) {
         await transaction.rollback();
-        console.log('LỖI THỰC SỰ:', error);
         throw error;
     }
 
