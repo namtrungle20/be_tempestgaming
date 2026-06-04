@@ -34,6 +34,16 @@ export const requestVaiTro = (allowedRoles) =>
             return res.status(403).json({ success: false, message: 'Tài khoản đã bị khóa' })
         }
 
+        const session = await db.Session.findOne({
+            where: {
+                nguoidung_id: decoded.nguoidung_id,
+                is_revoked: false,
+            }
+        })
+        if (!session) {
+            return res.status(401).json({ success: false, message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại' })
+        }
+
         const roles = allowedRoles.map(String);
         if (!roles.includes(String(user.vaitro))) {
             return res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập' });
@@ -42,3 +52,4 @@ export const requestVaiTro = (allowedRoles) =>
         req.user = user;
         next();
     });
+

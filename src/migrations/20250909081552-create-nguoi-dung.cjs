@@ -11,16 +11,16 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true
       },
       password: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       sdt: {
         type: Sequelize.STRING(15),
-        allowNull: false,
+        allowNull: true,
         unique: true
       },
       diachi: {
@@ -29,15 +29,9 @@ module.exports = {
       avatar: {
         type: Sequelize.STRING
       },
-      vaitro_id: {
-        type: Sequelize.UUID,
+      vaitro: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'VaiTros',
-          key: 'vaitro_id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT'
       },
       ngayvao: {
         allowNull: false,

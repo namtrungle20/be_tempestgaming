@@ -2,29 +2,34 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    // Thêm cột tongtien vào bảng GioHang
-    await queryInterface.addColumn('GioHangs', 'tongtien', {
-      type: Sequelize.DECIMAL(18, 2),
-      defaultValue: 0,
-      allowNull: false,
-    });
+  async up(queryInterface, Sequelize) {
+    const gioHangCols = await queryInterface.describeTable('GioHangs');
+    if (!gioHangCols.tongtien) {
+      await queryInterface.addColumn('GioHangs', 'tongtien', {
+        type: Sequelize.DECIMAL(18, 2),
+        defaultValue: 0,
+        allowNull: false,
+      });
+    }
 
-    // Thêm cột dongia vào bảng ChiTietGioHang
-    await queryInterface.addColumn('ChiTietGioHangs', 'dongia', {
-      type: Sequelize.DECIMAL(18, 2),
-      allowNull: false,
-    });
+    const chiTietCols = await queryInterface.describeTable('ChiTietGioHangs');
+    if (!chiTietCols.dongia) {
+      await queryInterface.addColumn('ChiTietGioHangs', 'dongia', {
+        type: Sequelize.DECIMAL(18, 2),
+        allowNull: false,
+      });
+    }
   },
 
-  down: async (queryInterface, Sequelize) => {
-    const tableName = 'ChiTietGioHangs';
-    const columns = await queryInterface.describeTable(tableName);
-    if (columns.dongia) {
-      await queryInterface.removeColumn(tableName, 'dongia');
+  async down(queryInterface) {
+    const chiTietCols = await queryInterface.describeTable('ChiTietGioHangs');
+    if (chiTietCols.dongia) {
+      await queryInterface.removeColumn('ChiTietGioHangs', 'dongia');
     }
-    if (columns.tongtien) {
-      await queryInterface.removeColumn(tableName, 'tongtien');
+
+    const gioHangCols = await queryInterface.describeTable('GioHangs');
+    if (gioHangCols.tongtien) {
+      await queryInterface.removeColumn('GioHangs', 'tongtien');
     }
   }
 };
