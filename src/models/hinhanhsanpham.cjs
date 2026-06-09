@@ -31,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false,
       allowNull: false
     },
+    file_hash: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'MD5 hash của file ảnh gốc để detect trùng lặp',
+    }
   }, {
     sequelize,
     modelName: 'HinhAnhSanPham',

@@ -1,14 +1,13 @@
 import Joi from "joi";
 
-class ThemHinhAnhSanPhamRequest  {
+class ThemHinhAnhSanPhamRequest {
     constructor(data) {
         this.sanpham_id = data.sanpham_id;
-        this.image_url = data.image_url;
     }
-    static validate(data){
+    static validate(data) {
         const schema = Joi.object({
             sanpham_id: Joi.string().required(),
-            image_url: Joi.string().required()
+            la_anh_dai_dien: Joi.boolean().optional(),
         })
         return schema.validate(data);
     }

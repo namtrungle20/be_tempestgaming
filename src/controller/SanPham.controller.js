@@ -1,10 +1,6 @@
 import * as SanPhamService from '../services/SanPham.service.js'
-import multer from 'multer';
 import { fullImportFromExcel } from '../services/Import.Excel.service.js';
 
-
-const uploadExcelMiddleware = multer({ storage: multer.memoryStorage() }).single('file');
-export const uploadExcel = uploadExcelMiddleware;
 
 export const getSanPhams = async (req, res) => {
     const result = await SanPhamService.laySanPham(req.query)
@@ -25,9 +21,7 @@ export const themSanPham = async (req, res) => {
 
 
 export const updateSanPham = async (req, res) => {
-    console.log('req.params:', req.params);
     const id = req.params.id;
-    console.log('id:', id);
     const productData = req.body;
     const uploadedImages = req.uploadedImages || [];
 
@@ -48,10 +42,15 @@ export const deleteSanPham = async (req, res) => {
 
 //EXCEL
 export const fullImport = async (req, res) => {
-    if (!req.file) throw { status: 400, message: 'Vui lòng upload file Excel' };
-    const results = await fullImportFromExcel(req.file.buffer);
+    if (!req.files?.file?.[0]) throw { status: 400, message: 'Vui lòng upload file Excel' };
+
+    const excelBuffer = req.files.file[0].buffer
+    const imageFiles = req.files.images || []  // ảnh không bắt buộc
+
+    const results = await fullImportFromExcel(excelBuffer, imageFiles);
     const total = Object.values(results).reduce((acc, r) => acc + r.success.length, 0);
     const errors = Object.values(results).reduce((acc, r) => acc + r.errors.length, 0);
+
     return res.status(200).json({
         success: true,
         message: `Import xong: ${total} thành công, ${errors} lỗi`,

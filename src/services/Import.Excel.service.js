@@ -104,6 +104,15 @@ const importSanPham = async (row) => {
     return { sanpham_id, name: row.name };
 };
 
+export const themHinhAnhTuURL = async ({ sanpham_id, image_url, la_anh_dai_dien = false }) => {
+    // Không upload, lưu URL thẳng vào DB
+    return await db.HinhAnhSanPham.create({
+        sanpham_id,
+        image_url,
+        la_anh_dai_dien,
+    });
+};
+
 export const fullImportFromExcel = async (buffer) => {
     const wb = XLSX.read(buffer, { type: 'buffer' });
     const [dmRows, thRows, loaiRows, spRows] = [
@@ -115,8 +124,27 @@ export const fullImportFromExcel = async (buffer) => {
 
     const danhMuc = await importSheet(dmRows, importDanhMuc);
     const thuongHieu = await importSheet(thRows, importThuongHieu);
-    const loaiSP = await importSheet(loaiRows, importLoaiSanPham);
-    const sanPham = await importSheet(spRows, importSanPham);
+
+    const danhMucIdMap = {};
+    danhMuc.success.forEach((r, i) => { danhMucIdMap[i + 1] = r.id; });
+
+    const loaiSP = await importSheet(loaiRows, (row) =>
+        importLoaiSanPham({ ...row, danhmuc_id: danhMucIdMap[row.danhmuc_id] ?? row.danhmuc_id })
+    );
+
+    const thuongHieuIdMap = {};
+    thuongHieu.success.forEach((r, i) => { thuongHieuIdMap[i + 1] = r.id; });
+
+    const loaiIdMap = {};
+    loaiSP.success.forEach((r, i) => { loaiIdMap[i + 1] = r.id; });
+
+    const sanPham = await importSheet(spRows, (row) =>
+        importSanPham({
+            ...row,
+            loai_id: loaiIdMap[row.loai_id] ?? row.loai_id,
+            thuonghieu_id: thuongHieuIdMap[row.thuonghieu_id] ?? row.thuonghieu_id,
+        })
+    );
 
     return { danhMuc, thuongHieu, loaiSP, sanPham };
 };

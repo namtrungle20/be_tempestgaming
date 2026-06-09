@@ -7,6 +7,7 @@ import * as HinhAnhSanPham from '../controller/HinhAnhSanPham.controller.js';
 import * as ThongTinChiTietController from '../controller/ThongTinChiTiet.controller.js';
 import ThemHinhAnhSanPhamRequest from '../dtos/requests/HinhAnhSanPham/ThemHinhAnhSanPham.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
+import { toCloudinaryArray, uploadCloudinaryArray } from '../middlewares/upload.middleware.js';
 
 const adminOnly = requestVaiTro([VaiTroNguoiDung.ADMIN]);
 
@@ -20,9 +21,24 @@ vaiTroRouter.delete('/:id', asyncHandler(VaiTroController.xoaVaiTro));
 // ─── Hình Ảnh Sản Phẩm ───────────────────────────────────────────────────────
 export const hinhAnhRouter = Router();
 hinhAnhRouter.get('/', asyncHandler(HinhAnhSanPham.getHinhAnhSanPhams));
+hinhAnhRouter.post('/bulk-upload',
+    adminOnly,
+    uploadCloudinaryArray,
+    toCloudinaryArray,
+    asyncHandler(HinhAnhSanPham.bulkUploadHinhAnh)
+);
+hinhAnhRouter.delete('/trung-lap', asyncHandler(HinhAnhSanPham.xoaAnhTrungLap));
+
 hinhAnhRouter.get('/:id', asyncHandler(HinhAnhSanPham.getHinhAnhSanPhamById));
-hinhAnhRouter.post('/', adminOnly, validate(ThemHinhAnhSanPhamRequest), asyncHandler(HinhAnhSanPham.themHinhAnhSanPham));
+hinhAnhRouter.post('/',
+    adminOnly,
+    uploadCloudinaryArray,
+    toCloudinaryArray,
+    validate(ThemHinhAnhSanPhamRequest),
+    asyncHandler(HinhAnhSanPham.themHinhAnhSanPham)
+);
 hinhAnhRouter.delete('/:id', asyncHandler(HinhAnhSanPham.xoaHinhAnhSanPham));
+
 
 // ─── Thông Tin Chi Tiết ───────────────────────────────────────────────────────
 export const thongTinRouter = Router();
