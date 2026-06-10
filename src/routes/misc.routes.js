@@ -27,6 +27,12 @@ hinhAnhRouter.post('/bulk-upload',
     toCloudinaryArray,
     asyncHandler(HinhAnhSanPham.bulkUploadHinhAnh)
 );
+
+hinhAnhRouter.post('/url',
+    adminOnly,
+    asyncHandler(HinhAnhSanPham.themHinhAnhTuURL)
+);
+
 hinhAnhRouter.delete('/trung-lap', asyncHandler(HinhAnhSanPham.xoaAnhTrungLap));
 
 hinhAnhRouter.get('/:id', asyncHandler(HinhAnhSanPham.getHinhAnhSanPhamById));

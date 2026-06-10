@@ -8,6 +8,7 @@ class ThemHinhAnhSanPhamRequest {
         const schema = Joi.object({
             sanpham_id: Joi.string().required(),
             la_anh_dai_dien: Joi.boolean().optional(),
+            image_url: Joi.string().uri().optional(),
         })
         return schema.validate(data);
     }

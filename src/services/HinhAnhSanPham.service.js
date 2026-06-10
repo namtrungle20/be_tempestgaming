@@ -123,3 +123,33 @@ export const bulkUploadTaoExcel = async (uploadedImages) => {
 
     return await wb.xlsx.writeBuffer();
 };
+
+export const uploadVaLuuHinhAnh = async (uploadedImages, sanpham_id, la_anh_dai_dien) => {
+    const results = await Promise.all(
+        uploadedImages.map(img =>
+            themHinhAnhSanPham({
+                sanpham_id,
+                image_url: img.url,
+                public_id: img.public_id,
+                file_hash: img.file_hash,
+                la_anh_dai_dien: la_anh_dai_dien === 'true',
+            })
+        )
+    );
+    return results;
+};
+
+export const themHinhAnhTuURLService = async ({ sanpham_id, image_url, public_id, la_anh_dai_dien }) => {
+    try {
+        return await themHinhAnhSanPham({
+            sanpham_id,
+            image_url,
+            la_anh_dai_dien: la_anh_dai_dien === true,
+        });
+    } catch (err) {
+        if (public_id) {
+            await cloudinary.uploader.destroy(public_id).catch(() => { });
+        }
+        throw err;
+    }
+};

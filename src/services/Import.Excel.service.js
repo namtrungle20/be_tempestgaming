@@ -4,7 +4,7 @@ import { themHinhAnhSanPham } from './HinhAnhSanPham.service.js';
 import { generateSanPhamId } from '../helpers/SanPham.helper.js';
 
 const parseSheet = (workbook, name) =>
-    XLSX.utils.sheet_to_json(workbook.Sheets[name] || {});
+    XLSX.utils.sheet_to_json(workbook.Sheets[name] || {}, { defval: null });
 
 const importSheet = async (rows, handler) => {
     const results = { success: [], errors: [] };
@@ -65,7 +65,58 @@ const importLoaiSanPham = async (row) => {
     return { id: loai.loai_id, name: loai.name };
 };
 
+// ── Gom các dòng cùng sanpham_id lại ─────────────────────────────────────────
+const groupSanPhamRows = (rows) => {
+    const map = new Map();
+    let lastId = null;
+
+    for (const row of rows) {
+        const id = row.sanpham_id?.toString().trim() || null;
+
+        // Dòng có đủ data → tạo sản phẩm mới
+        if (row.name && row.gia && row.loai_id && row.thuonghieu_id) {
+            const key = id || `__new__${row.name}`;
+            lastId = key; // ✅ cập nhật lastId
+            if (!map.has(key)) {
+                map.set(key, { ...row, image_urls: [] });
+            }
+            if (row.image_url?.trim()) {
+                map.get(key).image_urls.push(row.image_url.trim());
+            }
+        }
+        // Dòng chỉ có image_url → gắn vào sản phẩm trước đó
+        else if (row.image_url?.trim()) {
+            const targetId = id || lastId;
+            if (!targetId) continue;
+
+            if (map.has(targetId)) {
+                map.get(targetId).image_urls.push(row.image_url.trim());
+            } else {
+                map.set(targetId, { sanpham_id: targetId, image_urls: [row.image_url.trim()], _imageOnly: true });
+                lastId = targetId;
+            }
+        }
+    }
+    return [...map.values()];
+};
+
 const importSanPham = async (row) => {
+    // ── Chỉ thêm ảnh cho sản phẩm đã tồn tại ────────────────────────────────
+    if (row._imageOnly) {
+        const sanpham = await db.SanPham.findByPk(row.sanpham_id);
+        if (!sanpham) throw new Error(`sanpham_id=${row.sanpham_id} không tồn tại`);
+
+        const added = [];
+        for (const url of row.image_urls) {
+            try {
+                await themHinhAnhSanPham({ sanpham_id: row.sanpham_id, image_url: url });
+                added.push(url);
+            } catch { /* bỏ qua ảnh trùng */ }
+        }
+        return { sanpham_id: row.sanpham_id, name: sanpham.name, images_added: added.length, status: 'images_only' };
+    }
+
+    // ── Tạo sản phẩm mới ─────────────────────────────────────────────────────
     if (!row.name) throw new Error('Thiếu tên sản phẩm');
     if (!row.gia || isNaN(row.gia)) throw new Error('Giá không hợp lệ');
     if (!row.loai_id) throw new Error('Thiếu loai_id');
@@ -96,21 +147,22 @@ const importSanPham = async (row) => {
         thuonghieu_id: Number(row.thuonghieu_id),
     });
 
-    if (row.image_url?.trim()) {
-        await themHinhAnhSanPham({ sanpham_id, image_url: row.image_url.trim(), la_anh_dai_dien: true });
+    // ✅ Thêm tất cả ảnh, ảnh đầu tiên là đại diện
+    for (const [idx, url] of row.image_urls.entries()) {
+        try {
+            await themHinhAnhSanPham({
+                sanpham_id,
+                image_url: url,
+                la_anh_dai_dien: idx === 0,
+            });
+        } catch (err) {
+            return {
+                massege: `Skip image ${idx + 1}: ${err.message}`
+            }
+        }
     }
 
-
-    return { sanpham_id, name: row.name };
-};
-
-export const themHinhAnhTuURL = async ({ sanpham_id, image_url, la_anh_dai_dien = false }) => {
-    // Không upload, lưu URL thẳng vào DB
-    return await db.HinhAnhSanPham.create({
-        sanpham_id,
-        image_url,
-        la_anh_dai_dien,
-    });
+    return { sanpham_id, name: row.name, images_added: row.image_urls.length };
 };
 
 export const fullImportFromExcel = async (buffer) => {
@@ -138,13 +190,16 @@ export const fullImportFromExcel = async (buffer) => {
     const loaiIdMap = {};
     loaiSP.success.forEach((r, i) => { loaiIdMap[i + 1] = r.id; });
 
-    const sanPham = await importSheet(spRows, (row) =>
-        importSanPham({
+    // ✅ Gom rows trước khi import
+    const groupedSpRows = groupSanPhamRows(
+        spRows.map(row => ({
             ...row,
             loai_id: loaiIdMap[row.loai_id] ?? row.loai_id,
             thuonghieu_id: thuongHieuIdMap[row.thuonghieu_id] ?? row.thuonghieu_id,
-        })
+        }))
     );
+
+    const sanPham = await importSheet(groupedSpRows, importSanPham);
 
     return { danhMuc, thuongHieu, loaiSP, sanPham };
 };
