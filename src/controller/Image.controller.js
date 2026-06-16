@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 import cloudinary from '../config/cloudinaryConfig.js';
 import db from "../models/index.js";
-import * as HinhAnhSanPhamService from "../services/HinhAnhSanPham.service.js"
 
 
 
@@ -21,33 +20,40 @@ export async function uploadImages(req, res) {
     })
 }
 
-// export async function uploadImageToCloudinaryStorage(req, res) {
-//     try {
-//         if (!req.file) {
-//             return res.status(400).json({ message: 'Không có file ảnh nào được upload!' });
-//         }
-//         const { sanpham_id, la_anh_dai_dien } = req.body;
-//         if (!sanpham_id) {
-//             return res.status(400).json({ message: 'Thiếu sanpham_id' });
-//         }
-//         const image_url = req.file.path;
-//         const newImage = await HinhAnhSanPhamService.themHinhAnhSanPham({
-//             sanpham_id,
-//             image_url,
-//             la_anh_dai_dien: la_anh_dai_dien === 'true',
-//         });
-//         return res.status(201).json({
-//             success: true,
-//             message: 'Tải ảnh lên Cloudinary thành công',
-//             data: newImage
-//         });
-//     } catch (error) {
-//         return res.status(error.status || 500).json({
-//             success: false,
-//             message: error.message || 'Lỗi khi lưu ảnh'
-//         });
-//     }
-// }
+export const uploadToLibrary = async (req, res) => {
+    if (!req.uploadedImages?.length) throw { status: 400, message: 'Không có file ảnh' };
+    return res.status(201).json({
+        success: true,
+        data: req.uploadedImages.map(img =>
+        ({
+            url: img.url,
+            public_id: img.public_id
+        })),
+    });
+};
+
+export const assignToProduct = async (req, res) => {
+    const { sanpham_id, image_url, public_id } = req.body;
+    if (!sanpham_id || !image_url) throw { status: 400, message: 'Thiếu sanpham_id hoặc image_url' };
+
+    const sanpham = await db.SanPham.findByPk(sanpham_id);
+    if (!sanpham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
+
+    const existed = await db.HinhAnhSanPham.findOne({ where: { sanpham_id, image_url } });
+    if (existed) throw { status: 409, message: 'Ảnh đã được gán vào sản phẩm này' };
+
+    const count = await db.HinhAnhSanPham.count({ where: { sanpham_id } });
+    const newImage = await db.HinhAnhSanPham.create({
+        sanpham_id,
+        image_url,
+        public_id: public_id || null,
+        la_anh_dai_dien: count === 0,
+    });
+
+    return res.status(201).json({ success: true, data: newImage });
+};
+
+
 export async function uploadImageToCloudinaryOnly(req, res) {
     try {
         if (!req.file) {
@@ -91,9 +97,9 @@ async function checkImageInUse(imageUrl) {
     if (user) {
         return { inUse: true, model: 'NguoiDung', field: 'avatar' };
     }
-    const brand = await db.ThuongHieu.findOne({ where: { logo: imageUrl } });
+    const brand = await db.ThuongHieu.findOne({ where: { image: imageUrl } });
     if (brand) {
-        return { inUse: true, model: 'ThuongHieu', field: 'logo' };
+        return { inUse: true, model: 'ThuongHieu', field: 'image' };
     }
     return { inUse: false };
 }
@@ -208,3 +214,4 @@ export async function getAllCloudinaryImages(req, res) {
     return res.status(200).json({ images });
 
 }
+
