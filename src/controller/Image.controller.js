@@ -194,10 +194,13 @@ export async function viewImage(req, res) {
 }
 
 export async function getAllCloudinaryImages(req, res) {
+    const { next_cursor, max_results = 24 } = req.query
+
     const result = await cloudinary.api.resources({
         type: 'upload',
         resource_type: 'image',
-        max_results: 100, // số lượng ảnh tối đa trả về
+        max_results: Math.min(Number(max_results) || 24, 100),
+        next_cursor: next_cursor || undefined,
     });
 
     const images = result.resources.map((img) => ({
@@ -211,7 +214,11 @@ export async function getAllCloudinaryImages(req, res) {
         folder: img.folder || null,
     }));
 
-    return res.status(200).json({ images });
+    return res.status(200).json({
+        images,
+        next_cursor: result.next_cursor || null,
+        has_more: !!result.next_cursor,
+    });
 
 }
 

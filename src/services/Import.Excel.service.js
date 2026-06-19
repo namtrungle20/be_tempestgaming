@@ -141,6 +141,7 @@ const importSanPham = async (row) => {
         sanpham_id,
         name: row.name,
         mota: row.mota || null,
+        thong_so: row.thong_so || null,
         gia: Number(row.gia),
         soluong: Number(row.soluong) || 0,
         loai_id: Number(row.loai_id),

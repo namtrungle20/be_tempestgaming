@@ -33,7 +33,7 @@ const buildOrder = (sort_by = 'createdAt', sort_order = 'DESC') => {
     const allowedOrders = ['ASC', 'DESC']
     const field = allowedFields.includes(sort_by) ? sort_by : 'createdAt'
     const order = allowedOrders.includes(sort_order?.toUpperCase()) ? sort_order.toUpperCase() : 'DESC'
-    return [[field, order]]
+    return [[field, order], ['sanpham_id', 'ASC']]
 }
 
 const sanphamIncludes = [
@@ -68,7 +68,8 @@ export const laySanPhamTheoId = async (id) => {
         include: [
             { model: db.ThuongHieu, attributes: ['name'] },
             { model: db.LoaiSanPham, attributes: ['name'] },
-            { model: db.HinhAnhSanPham, as: 'HinhAnhSanPham' }
+            { model: db.HinhAnhSanPham, as: 'HinhAnhSanPham' },
+            { model: db.ChiTietSanPham, as: 'ChiTietSanPham' },
         ]
     })
     if (!sanpham) throw { status: 404, message: 'Không tìm thấy sản phẩm' }

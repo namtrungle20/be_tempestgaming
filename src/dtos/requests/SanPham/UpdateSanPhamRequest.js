@@ -15,6 +15,10 @@ class UpdateSanPhamRequest {
         const schema = Joi.object({
             name: Joi.string().min(3).max(255).optional(),
             mota: Joi.string().min(10).optional(),
+            thong_so: Joi.alternatives().try(
+                Joi.object(),
+                Joi.string()
+            ).optional(),
             gia: Joi.number().positive().optional(),
             soluong: Joi.number().integer().min(0).optional(),
             loai_id: Joi.number().integer().optional(),

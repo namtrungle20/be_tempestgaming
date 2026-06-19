@@ -5,6 +5,7 @@ import { requestVaiTro } from '../middlewares/auth.middleware.js';
 import * as VaiTroController from '../controller/VaiTro.controller.js';
 import * as HinhAnhSanPham from '../controller/HinhAnhSanPham.controller.js';
 import * as ThongTinChiTietController from '../controller/ThongTinChiTiet.controller.js';
+import * as ChiTietSanPhamController from '../controller/ChiTietSanPham.controller.js';
 import ThemHinhAnhSanPhamRequest from '../dtos/requests/HinhAnhSanPham/ThemHinhAnhSanPham.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
 import { toCloudinaryArray, uploadCloudinaryArray } from '../middlewares/upload.middleware.js';
@@ -46,10 +47,12 @@ hinhAnhRouter.post('/',
 hinhAnhRouter.delete('/:id', asyncHandler(HinhAnhSanPham.xoaHinhAnhSanPham));
 
 
-// ─── Thông Tin Chi Tiết ───────────────────────────────────────────────────────
-export const thongTinRouter = Router();
-thongTinRouter.get('/', asyncHandler(ThongTinChiTietController.getThongTinChiTiet));
-thongTinRouter.get('/:id', asyncHandler(ThongTinChiTietController.getThongTinChiTietById));
-thongTinRouter.post('/', asyncHandler(ThongTinChiTietController.themThongTinChiTiet));
-thongTinRouter.put('/:id', asyncHandler(ThongTinChiTietController.updateThongTinChiTiet));
-thongTinRouter.delete('/:id', asyncHandler(ThongTinChiTietController.xoaThongTinChiTiet));
+// ─── Thông Tin Sản Phẩm ───────────────────────────────────────────────────────
+
+export const chiTietRouter = Router();
+chiTietRouter.get('/', asyncHandler(ChiTietSanPhamController.getChiTietSanPham));
+chiTietRouter.post('/', adminOnly, asyncHandler(ChiTietSanPhamController.themChiTietSanPham));
+chiTietRouter.post('/bulk', adminOnly, asyncHandler(ChiTietSanPhamController.themNhieuChiTietSanPham));
+chiTietRouter.put('/:id', adminOnly, asyncHandler(ChiTietSanPhamController.capNhatChiTietSanPham));
+chiTietRouter.delete('/all', adminOnly, asyncHandler(ChiTietSanPhamController.xoaHetChiTietSanPham));
+chiTietRouter.delete('/:id', adminOnly, asyncHandler(ChiTietSanPhamController.xoaChiTietSanPham));

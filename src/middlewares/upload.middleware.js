@@ -33,7 +33,7 @@ export const uploadSingle = multer({
     limits: { fileSize: MAX_FILE_SIZE },
 }).single('image')
 
-export const uploadArray = (fieldName = 'images', maxCount = 5) =>
+export const uploadArray = (fieldName = 'images', maxCount = 20) =>
     multer({
         storage: multer.diskStorage({
             destination: UPLOAD_DIR,
@@ -56,7 +56,7 @@ export const uploadCloudinaryArray = multer({
     storage: multer.memoryStorage(),
     fileFilter: imageFileFilter,
     limits: { fileSize: MAX_FILE_SIZE },
-}).array('images', 5)
+}).array('images', 20)
 
 // ── Middleware upload single lên Cloudinary + check trùng hash ────────────────
 

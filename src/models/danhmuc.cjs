@@ -36,9 +36,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'DanhMuc',
     tableName: 'DanhMucs',
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
+    underscored: true,
+    timestamps: false
   });
   return DanhMuc;
 };

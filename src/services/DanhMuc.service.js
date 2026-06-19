@@ -29,7 +29,7 @@ export const layDanhMuc = async ({ search = '', page = 1, trangthai, sort_by = '
         limit: PAGE_SIZE,
         offset,
         order,
-        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai', 'created_at', 'updated_at']
+        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai']
     });
 
     return {
@@ -43,7 +43,7 @@ export const layDanhMuc = async ({ search = '', page = 1, trangthai, sort_by = '
 // Lấy chi tiết theo ID
 export const layDanhMucTheoId = async (id) => {
     const danhMuc = await db.DanhMuc.findByPk(id, {
-        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai', 'created_at', 'updated_at']
+        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai']
     });
     if (!danhMuc) throw { status: 404, message: 'Danh mục không tồn tại' };
     return danhMuc;

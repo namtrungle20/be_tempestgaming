@@ -11,7 +11,6 @@ class ResponseHinhAnhSanPham {
             this.sanpham = {
                 sanpham_id: hinhanh.SanPham.sanpham_id,
                 name: hinhanh.SanPham.name,
-                url: hinhanh.SanPham.url,
                 gia: hinhanh.SanPham.gia
             };
         }

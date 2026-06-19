@@ -40,7 +40,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'HinhAnhSanPham',
     tableName: 'HinhAnhSanPhams',
-    underscored: true
+    underscored: true,
+    timestamps: false
   });
   return HinhAnhSanPham;
 };

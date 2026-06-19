@@ -44,6 +44,7 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'ChiTietGioHang',
     tableName: 'ChiTietGioHangs',
     underscored: true,
+    timestamps: false
   });
   return ChiTietGioHang;
 };

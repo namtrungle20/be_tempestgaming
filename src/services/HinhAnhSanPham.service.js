@@ -4,7 +4,7 @@ import ExcelJS from 'exceljs';
 import ResponseHinhAnhSanPham from '../dtos/responses/ResponseHinhAnhSanPham.js';
 
 
-const includeProduct = { model: db.SanPham, as: 'SanPham', attributes: ['sanpham_id', 'name', 'gia', 'url'] };
+const includeProduct = { model: db.SanPham, as: 'SanPham', attributes: ['sanpham_id', 'name', 'gia',] };
 
 export const layHinhAnhSanPhams = async ({ page = 1, sanpham_id }) => {
     const where = sanpham_id ? { sanpham_id } : {};
