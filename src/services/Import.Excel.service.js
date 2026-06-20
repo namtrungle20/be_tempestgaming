@@ -141,7 +141,6 @@ const importSanPham = async (row) => {
         sanpham_id,
         name: row.name,
         mota: row.mota || null,
-        thong_so: row.thong_so || null,
         gia: Number(row.gia),
         soluong: Number(row.soluong) || 0,
         loai_id: Number(row.loai_id),
@@ -166,13 +165,36 @@ const importSanPham = async (row) => {
     return { sanpham_id, name: row.name, images_added: row.image_urls.length };
 };
 
+const importChiTietSanPham = async (row) => {
+    if (!row.sanpham_id) throw new Error('Thiếu sanpham_id');
+    if (!row.name) throw new Error('Thiếu ten_thuoc_tinh');
+    if (!row.gia_tri) throw new Error('Thiếu gia_tri');
+
+    const sanpham = await db.SanPham.findByPk(row.sanpham_id.toString().trim());
+    if (!sanpham) throw new Error(`sanpham_id=${row.sanpham_id} không tồn tại`);
+
+    const existed = await db.ChiTietSanPham.findOne({
+        where: { sanpham_id: row.sanpham_id, name: row.name }
+    });
+    if (existed) return { sanpham_id: row.sanpham_id, name: row.name, status: 'skipped' };
+
+    await db.ChiTietSanPham.create({
+        sanpham_id: row.sanpham_id.toString().trim(),
+        name: row.name.toString().trim(),
+        gia_tri: row.gia_tri.toString().trim(),
+    });
+
+    return { sanpham_id: row.sanpham_id, name: row.name, gia_tri: row.gia_tri };
+};
+
 export const fullImportFromExcel = async (buffer) => {
     const wb = XLSX.read(buffer, { type: 'buffer' });
-    const [dmRows, thRows, loaiRows, spRows] = [
+    const [dmRows, thRows, loaiRows, spRows, chiTietRows] = [
         parseSheet(wb, 'DanhMuc'),
         parseSheet(wb, 'ThuongHieu'),
         parseSheet(wb, 'LoaiSanPham'),
         parseSheet(wb, 'SanPham'),
+        parseSheet(wb, 'ChiTietSanPham'),
     ];
 
     const danhMuc = await importSheet(dmRows, importDanhMuc);
@@ -202,5 +224,7 @@ export const fullImportFromExcel = async (buffer) => {
 
     const sanPham = await importSheet(groupedSpRows, importSanPham);
 
-    return { danhMuc, thuongHieu, loaiSP, sanPham };
+    const chiTiet = await importSheet(chiTietRows, importChiTietSanPham);
+
+    return { danhMuc, thuongHieu, loaiSP, sanPham, chiTiet };
 };

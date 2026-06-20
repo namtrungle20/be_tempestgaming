@@ -12,6 +12,7 @@ const buildSearchWhere = (search) => {
         [Op.or]: [
             { name: { [Op.like]: `%${search}%` } },
             { mota: { [Op.like]: `%${search}%` } },
+            { sanpham_id: { [Op.like]: `%${search}%` } },
         ]
     }
 }
@@ -44,57 +45,59 @@ const sanphamIncludes = [
 
 // ─── Services ────────────────────────────────────────────────────────────────
 
-export const laySanPham = async ({ search = '', page = 1, loai_id, thuonghieu_id, gia_min, gia_max, sort_by, sort_order }) => {
-    const pageSize = 10
+export const laySanPham = async ({ search = '', page = 1, limit, loai_id, thuonghieu_id, gia_min, gia_max, sort_by, sort_order }) => {
+    const pageSize = limit ? Number(limit) : 10
     const offset = (page - 1) * pageSize
-    const whereClause = buildFilterWhere({ search, loai_id, thuonghieu_id, gia_min, gia_max })
+
+    const where = buildFilterWhere({ search, loai_id, thuonghieu_id, gia_min, gia_max })
+
+    const finalWhere = search?.trim() ? {
+        ...where,
+        [Op.or]: [
+            { name: { [Op.like]: `%${search}%` } },
+            { mota: { [Op.like]: `%${search}%` } },
+            { sanpham_id: { [Op.like]: `%${search}%` } },
+            { '$ThuongHieu.name$': { [Op.like]: `%${search}%` } },
+            { '$LoaiSanPham.name$': { [Op.like]: `%${search}%` } },
+        ]
+    } : where
 
     const [sanphams, total] = await Promise.all([
         db.SanPham.findAll({
-            where: whereClause,
+            where: finalWhere,
             limit: pageSize,
             offset,
             include: sanphamIncludes,
-            order: buildOrder(sort_by, sort_order)
+            order: buildOrder(sort_by, sort_order),
+            subQuery: false, // ✅ cần thiết khi dùng $association.field$
         }),
-        db.SanPham.count({ where: whereClause })
+        db.SanPham.count({
+            where: finalWhere,
+            include: [
+                { model: db.ThuongHieu, attributes: [] },
+                { model: db.LoaiSanPham, attributes: [] },
+            ],
+            distinct: true,
+            subQuery: false,
+        })
     ])
 
     return { data: sanphams, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / pageSize) }
 }
 
 export const laySanPhamTheoId = async (id) => {
-    const sanpham = await db.SanPham.findByPk(id, {
+    const sanpham = await db.SanPham.findOne({
+        where: { sanpham_id: id, deleted_at: null },
         include: [
             { model: db.ThuongHieu, attributes: ['name'] },
             { model: db.LoaiSanPham, attributes: ['name'] },
             { model: db.HinhAnhSanPham, as: 'HinhAnhSanPham' },
-            { model: db.ChiTietSanPham, as: 'ChiTietSanPham' },
-        ]
+        ],
     })
     if (!sanpham) throw { status: 404, message: 'Không tìm thấy sản phẩm' }
     return sanpham
 }
 
-// export const themSanPham = async ({ name, mota, gia, soluong, loai_id, thuonghieu_id }) => {
-//     const [loaiSanPham, thuongHieu] = await Promise.all([
-//         db.LoaiSanPham.findByPk(loai_id),
-//         db.ThuongHieu.findByPk(thuonghieu_id)
-//     ])
-//     if (!loaiSanPham) throw { status: 404, message: 'Loại sản phẩm không tồn tại' }
-//     if (!thuongHieu) throw { status: 404, message: 'Thương hiệu không tồn tại' }
-
-//     const sanpham_id = await generateSanPhamId()
-//     return await db.SanPham.create({
-//         sanpham_id,
-//         name,
-//         mota,
-//         gia: gia || 0,
-//         soluong: soluong || 0,
-//         loai_id,
-//         thuonghieu_id,
-//     })
-// }
 export const themSanPham = async (productData, uploadedImages = []) => {
     // Lấy các trường cần thiết
     const { name, mota, gia, soluong, loai_id, thuonghieu_id } = productData;

@@ -4,7 +4,6 @@ import validate from '../middlewares/validate.middleware.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js';
 import * as VaiTroController from '../controller/VaiTro.controller.js';
 import * as HinhAnhSanPham from '../controller/HinhAnhSanPham.controller.js';
-import * as ThongTinChiTietController from '../controller/ThongTinChiTiet.controller.js';
 import * as ChiTietSanPhamController from '../controller/ChiTietSanPham.controller.js';
 import ThemHinhAnhSanPhamRequest from '../dtos/requests/HinhAnhSanPham/ThemHinhAnhSanPham.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
