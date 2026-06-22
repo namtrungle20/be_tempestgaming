@@ -35,7 +35,17 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'MD5 hash của file ảnh gốc để detect trùng lặp',
-    }
+    },
+    type: {
+      type: DataTypes.ENUM('image', 'video'),
+      allowNull: false,
+      defaultValue: 'image',
+    },
+    public_id: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      comment: 'Cloudinary public_id để xóa file',
+    },
   }, {
     sequelize,
     modelName: 'HinhAnhSanPham',

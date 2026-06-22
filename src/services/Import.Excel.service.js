@@ -2,6 +2,12 @@ import * as XLSX from 'xlsx';
 import db from '../models/index.js';
 import { themHinhAnhSanPham } from './HinhAnhSanPham.service.js';
 import { generateSanPhamId } from '../helpers/SanPham.helper.js';
+import { marked } from 'marked';
+
+marked.setOptions({
+    breaks: true,
+    gfm: true,
+});
 
 const parseSheet = (workbook, name) =>
     XLSX.utils.sheet_to_json(workbook.Sheets[name] || {}, { defval: null });
@@ -137,10 +143,12 @@ const importSanPham = async (row) => {
     const existedByName = await db.SanPham.findOne({ where: { name: row.name } });
     if (existedByName) return { sanpham_id: existedByName.sanpham_id, name: row.name, status: 'skipped' };
 
+    const motaHtml = row.mota ? marked.parse(row.mota) : null;
+
     await db.SanPham.create({
         sanpham_id,
         name: row.name,
-        mota: row.mota || null,
+        mota: motaHtml,
         gia: Number(row.gia),
         soluong: Number(row.soluong) || 0,
         loai_id: Number(row.loai_id),

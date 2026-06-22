@@ -17,18 +17,19 @@ export const themHinhAnhSanPham = async (req, res) => {
     const results = await HinhAnhSanPhamService.uploadVaLuuHinhAnh(
         req.uploadedImages,
         sanpham_id,
-        la_anh_dai_dien
+        la_anh_dai_dien,
+        type
     );
 
     return res.status(201).json({
         success: true,
-        message: `Thêm ${results.length} hình ảnh thành công`,
+        message: `Thêm ${results.length} ${type === 'video' ? 'video' : 'hình ảnh'} thành công`,
         data: results,
     });
 }
 
 export const themHinhAnhTuURL = async (req, res) => {
-    const { sanpham_id, image_url, public_id, la_anh_dai_dien } = req.body;
+    const { sanpham_id, image_url, public_id, la_anh_dai_dien, type = "image" } = req.body;
     if (!sanpham_id || !image_url) throw { status: 400, message: 'Thiếu sanpham_id hoặc image_url' };
 
     const result = await HinhAnhSanPhamService.themHinhAnhTuURLService({
@@ -36,6 +37,7 @@ export const themHinhAnhTuURL = async (req, res) => {
         image_url,
         public_id,
         la_anh_dai_dien,
+        type
     });
 
     return res.status(201).json({

@@ -29,7 +29,7 @@ export const layHinhAnhSanPhamTheoId = async (id) => {
     return hinhanh
 }
 
-export const themHinhAnhSanPham = async ({ sanpham_id, image_url, file_hash, public_id, la_anh_dai_dien = false }) => {
+export const themHinhAnhSanPham = async ({ sanpham_id, image_url, file_hash, public_id, la_anh_dai_dien = false, type = "image" }) => {
     if (!sanpham_id || !image_url) throw { status: 400, message: 'Thiếu sanpham_id hoặc image_url' }
 
     const sanpham = await db.SanPham.findByPk(sanpham_id)
@@ -46,14 +46,16 @@ export const themHinhAnhSanPham = async ({ sanpham_id, image_url, file_hash, pub
     const imageCount = await db.HinhAnhSanPham.count({ where: { sanpham_id } });
 
     let isDefault = false;
-    if (imageCount === 0) {
-        isDefault = true;
-    } else if (la_anh_dai_dien === true) {
-        await db.HinhAnhSanPham.update(
-            { la_anh_dai_dien: false },
-            { where: { sanpham_id, la_anh_dai_dien: true } }
-        );
-        isDefault = true;
+    if (type !== 'video') {
+        if (imageCount === 0) {
+            isDefault = true;
+        } else if (la_anh_dai_dien === true) {
+            await db.HinhAnhSanPham.update(
+                { la_anh_dai_dien: false },
+                { where: { sanpham_id, la_anh_dai_dien: true } }
+            );
+            isDefault = true;
+        }
     }
 
     return await db.HinhAnhSanPham.create({
@@ -61,7 +63,8 @@ export const themHinhAnhSanPham = async ({ sanpham_id, image_url, file_hash, pub
         image_url,
         public_id,
         file_hash: file_hash || null,
-        la_anh_dai_dien: isDefault
+        la_anh_dai_dien: isDefault,
+        type
     });
 }
 
@@ -133,18 +136,20 @@ export const uploadVaLuuHinhAnh = async (uploadedImages, sanpham_id, la_anh_dai_
                 public_id: img.public_id,
                 file_hash: img.file_hash,
                 la_anh_dai_dien: la_anh_dai_dien === 'true',
+                type
             })
         )
     );
     return results;
 };
 
-export const themHinhAnhTuURLService = async ({ sanpham_id, image_url, public_id, la_anh_dai_dien }) => {
+export const themHinhAnhTuURLService = async ({ sanpham_id, image_url, public_id, la_anh_dai_dien, type = "image" }) => {
     try {
         return await themHinhAnhSanPham({
             sanpham_id,
             image_url,
             la_anh_dai_dien: la_anh_dai_dien === true,
+            type
         });
     } catch (err) {
         if (public_id) {
