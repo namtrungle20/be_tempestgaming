@@ -1,5 +1,6 @@
 import * as SanPhamService from '../services/SanPham.service.js'
 import { fullImportFromExcel } from '../services/Import.Excel.service.js';
+import { exportSanPhamToExcel } from '../services/Export.Excel.service.js';
 
 
 export const getSanPhams = async (req, res) => {
@@ -56,4 +57,12 @@ export const fullImport = async (req, res) => {
         message: `Import xong: ${total} thành công, ${errors} lỗi`,
         data: results,
     });
+};
+
+export const exportSanPham = async (req, res) => {
+    const buffer = await exportSanPhamToExcel();
+    const fileName = `danh_sach_san_pham_${Date.now()}.xlsx`;
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    return res.send(buffer);
 };
