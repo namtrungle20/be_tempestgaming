@@ -1,17 +1,12 @@
 import { Op } from 'sequelize'
 import db from '../models/index.js'
 
-const PAGE_SIZE = 10
 
-export const layThuongHieus = async ({ search = '', page = 1 }) => {
-    const offset = (parseInt(page, 10) - 1) * PAGE_SIZE
+export const layThuongHieus = async ({ search = '' }) => {
     const where = search.trim() ? { name: { [Op.like]: `%${search}%` } } : {}
 
-    const [data, total] = await Promise.all([
-        db.ThuongHieu.findAll({ where, limit: PAGE_SIZE, offset }),
-        db.ThuongHieu.count({ where })
-    ])
-    return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) }
+    const data = await db.ThuongHieu.findAll({ where, order: [['thuonghieu_id', 'ASC']] })
+    return { data, total: data.length }
 }
 
 export const layThuongHieuTheoId = async (id) => {

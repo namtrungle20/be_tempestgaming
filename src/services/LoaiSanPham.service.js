@@ -13,20 +13,15 @@ const buildWhere = ({ search, danhmuc_id }) => {
     return where;
 };
 
-export const layLoaiSanPhams = async ({ search = '', page = 1, danhmuc_id = null }) => {
-    const offset = (parseInt(page, 10) - 1) * PAGE_SIZE
+export const layLoaiSanPhams = async ({ search = '', danhmuc_id = null }) => {
     const where = buildWhere({ search, danhmuc_id });
 
-    const [data, total] = await Promise.all([
-        db.LoaiSanPham.findAll({
-            where,
-            limit: PAGE_SIZE,
-            offset,
-            include: [{ model: db.DanhMuc, as: 'DanhMuc', attributes: ['danhmuc_id', 'ten'] }]
-        }),
-        db.LoaiSanPham.count({ where })
-    ])
-    return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) }
+    const data = await db.LoaiSanPham.findAll({
+        where,
+        include: [{ model: db.DanhMuc, as: 'DanhMuc', attributes: ['danhmuc_id', 'ten'] }],
+        order: [['loai_id', 'ASC']],
+    })
+    return { data, total: data.length }
 }
 
 export const layLoaiSanPhamTheoId = async (id) => {

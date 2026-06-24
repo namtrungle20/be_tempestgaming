@@ -9,6 +9,7 @@ import gioHangRoutes from './routes/giohang.routes.js';
 import imageRoutes from './routes/images.routes.js';
 import danhMucRouter from './routes/danhmuc.routes.js'
 import thanhtoanRouter from './routes/thanhtoan.routes.js'
+import danhgiaRouter from './routes/danhgia.routes.js'
 import { vaiTroRouter, hinhAnhRouter, chiTietRouter } from './routes/misc.routes.js';
 
 export const AppRoute = (app) => {
@@ -18,6 +19,7 @@ export const AppRoute = (app) => {
     app.use('/api/nguoidung', nguoiDungRoutes);
     app.use('/api/danhmuc', danhMucRouter);
     app.use('/api/sanpham', sanPhamRoutes);
+    app.use('/api/danhgia', danhgiaRouter);
     app.use('/api/loaisanpham', loaiSanPhamRoutes);
     app.use('/api/thuonghieu', thuongHieuRoutes);
     app.use('/api/donhang', donHangRoutes);
