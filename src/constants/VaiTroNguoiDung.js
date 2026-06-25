@@ -1,5 +1,5 @@
 const VaiTroNguoiDung = {
+    USER: 0,
     ADMIN: 1,
-    USER: 2
 }
 export default VaiTroNguoiDung

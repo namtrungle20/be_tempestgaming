@@ -37,10 +37,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: { min: 1, max: 5 },
     },
-    binhluan:{
+    binhluan: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    }
   }, {
     sequelize,
     modelName: 'DanhGia',

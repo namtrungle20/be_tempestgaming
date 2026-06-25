@@ -1,12 +1,16 @@
-import express from 'express';
-import { getDanhGia, postDanhGia, deleteDanhGia } from '../controller/DanhGia.controller.js';
+import { getDanhGia, postDanhGia, deleteDanhGia, checkDaMua } from '../controller/DanhGia.controller.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
+import VaiTroNguoiDung from '../constants/VaiTroNguoiDung.js';
+import { Router } from 'express';
 
-const router = express.Router();
+
+const router = Router()
+const AdminOrUser = requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER])
 
 router.get('/', asyncHandler(getDanhGia));
-router.post('/', requestVaiTro([0, 1]), asyncHandler(postDanhGia));
-router.delete('/:id', requestVaiTro([0, 1]), asyncHandler(deleteDanhGia));
+router.get('/check-mua', AdminOrUser, asyncHandler(checkDaMua));
+router.post('/', AdminOrUser, asyncHandler(postDanhGia));
+router.delete('/:id', AdminOrUser, asyncHandler(deleteDanhGia));
 
 export default router;

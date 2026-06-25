@@ -5,6 +5,13 @@ export const getDanhGia = async (req, res) => {
     return res.status(200).json({ success: true, ...result });
 };
 
+export const checkDaMua = async (req, res) => {
+    const { sanpham_id } = req.query;
+    const nguoidung_id = req.user.nguoidung_id;
+    const daMua = await DanhGiaService.kiemTraDaMua(nguoidung_id, sanpham_id);
+    return res.status(200).json({ success: true, da_mua: daMua });
+};
+
 export const postDanhGia = async (req, res) => {
     const { sanpham_id, sosao, binhluan } = req.body;
     const nguoidung_id = req.user.nguoidung_id;

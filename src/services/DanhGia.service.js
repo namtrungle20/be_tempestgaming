@@ -1,4 +1,21 @@
 import db from '../models/index.js';
+import { TrangThaiDonHang } from '../constants/index.js';
+import { Op } from 'sequelize';
+
+export const kiemTraDaMua = async (nguoidung_id, sanpham_id) => {
+    const donhang = await db.DonHang.findOne({
+        where: {
+            nguoidung_id,
+            trangthai: { [Op.in]: [TrangThaiDonHang.DA_THANH_TOAN] },
+        },
+        include: [{
+            model: db.ChiTietDonHang,
+            where: { sanpham_id },
+            required: true,
+        }],
+    });
+    return !!donhang;
+};
 
 // Lấy danh sách đánh giá theo sản phẩm
 export const layDanhGiaTheoSanPham = async ({ sanpham_id, page = 1, limit = 10 }) => {
@@ -42,7 +59,7 @@ export const layDanhGiaTheoSanPham = async ({ sanpham_id, page = 1, limit = 10 }
             created_at: dg.created_at,
             nguoidung: {
                 id: dg.NguoiDung?.nguoidung_id,
-                name: dg.NguoiDung?.name || 'Người dùng ẩn danh',
+                name: dg.NguoiDung?.name,
                 avatar: dg.NguoiDung?.avatar || null,
             }
         })),
@@ -60,6 +77,12 @@ export const taoDanhGia = async ({ nguoidung_id, sanpham_id, sosao, binhluan }) 
 
     const sanpham = await db.SanPham.findByPk(sanpham_id);
     if (!sanpham) throw { status: 404, message: 'Không tìm thấy sản phẩm' };
+
+    const daMua = await kiemTraDaMua(nguoidung_id, sanpham_id);
+    if (!daMua) throw {
+        status: 403,
+        message: 'Bạn cần mua và nhận hàng thành công trước khi đánh giá sản phẩm này'
+    };
 
     // Mỗi user chỉ review 1 lần / 1 sản phẩm
     const existed = await db.DanhGia.findOne({ where: { nguoidung_id, sanpham_id } });
@@ -84,7 +107,7 @@ export const taoDanhGia = async ({ nguoidung_id, sanpham_id, sosao, binhluan }) 
         created_at: danhgia.created_at,
         nguoidung: {
             id: nguoidung?.nguoidung_id,
-            name: nguoidung?.name || 'Người dùng ẩn danh',
+            name: nguoidung?.name,
             avatar: nguoidung?.avatar || null,
         }
     };
@@ -104,3 +127,4 @@ export const xoaDanhGia = async ({ danhgia_id, nguoidung_id, vaitro }) => {
 
     await danhgia.destroy();
 };
+
