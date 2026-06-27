@@ -70,6 +70,22 @@ export const layDanhGiaTheoSanPham = async ({ sanpham_id, page = 1, limit = 10 }
     };
 };
 
+export const layTatCaDanhGia = async ({ page = 1, limit = 10, sosao }) => {
+    const where = {}
+    if (sosao) where.sosao = sosao
+    const { rows, count } = await db.DanhGia.findAndCountAll({
+        where,
+        include: [
+            { model: db.NguoiDung, as: 'NguoiDung', attributes: ['nguoidung_id', 'name', 'avatar'] },
+            { model: db.SanPham, as: 'SanPham', attributes: ['sanpham_id', 'name'] },
+        ],
+        order: [['created_at', 'DESC']],
+        limit: Number(limit),
+        offset: (page - 1) * limit,
+    })
+    return { data: rows, total: count }
+}
+
 // Tạo đánh giá mới
 export const taoDanhGia = async ({ nguoidung_id, sanpham_id, sosao, binhluan }) => {
     if (!nguoidung_id || !sanpham_id) throw { status: 400, message: 'Thiếu thông tin' };

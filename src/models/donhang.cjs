@@ -41,7 +41,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0
     },
     sdt: DataTypes.STRING,
-    diachi: DataTypes.STRING
+    diachi: DataTypes.STRING,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'DonHang',

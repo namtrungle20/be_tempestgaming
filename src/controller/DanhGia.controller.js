@@ -12,6 +12,11 @@ export const checkDaMua = async (req, res) => {
     return res.status(200).json({ success: true, da_mua: daMua });
 };
 
+export const getAllDanhGia = async (req, res) => {
+    const result = await DanhGiaService.layTatCaDanhGia(req.query);
+    return res.status(200).json({ success: true, ...result });
+}
+
 export const postDanhGia = async (req, res) => {
     const { sanpham_id, sosao, binhluan } = req.body;
     const nguoidung_id = req.user.nguoidung_id;
