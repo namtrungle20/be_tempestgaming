@@ -1,7 +1,6 @@
 import db from '../models/index.js';
 import { Op } from 'sequelize';
 
-const PAGE_SIZE = 10;
 
 // Helper tìm kiếm + lọc
 const buildWhere = ({ search, trangthai }) => {
@@ -19,15 +18,12 @@ const buildWhere = ({ search, trangthai }) => {
 };
 
 // Lấy danh sách (phân trang, tìm kiếm, lọc, sắp xếp)
-export const layDanhMuc = async ({ search = '', page = 1, trangthai, sort_by = 'thutu', sort_order = 'ASC' }) => {
-    const offset = (parseInt(page) - 1) * PAGE_SIZE;
+export const layDanhMuc = async ({ search = '', trangthai, sort_by = 'thutu', sort_order = 'ASC' }) => {
     const where = buildWhere({ search, trangthai });
     const order = [[sort_by, sort_order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC']];
 
     const { count, rows } = await db.DanhMuc.findAndCountAll({
         where,
-        limit: PAGE_SIZE,
-        offset,
         order,
         attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai']
     });
@@ -35,8 +31,6 @@ export const layDanhMuc = async ({ search = '', page = 1, trangthai, sort_by = '
     return {
         data: rows,
         total: count,
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(count / PAGE_SIZE)
     };
 };
 
