@@ -46,7 +46,7 @@ export const layNguoiDungTheoId = async (id) => {
     return new ResponseNguoiDung(user)
 }
 
-export const capNhatNguoiDung = async (id, { email, sdt, vaitro, trangthai }) => {
+export const capNhatNguoiDung = async (id, { name, email, sdt, diachi, vaitro, trangthai }) => {
     const user = await db.NguoiDung.findOne({
         where: { nguoidung_id: id }
     })
@@ -56,8 +56,10 @@ export const capNhatNguoiDung = async (id, { email, sdt, vaitro, trangthai }) =>
         throw { status: 403, message: 'Tài khoản đã bị xóa, không thể cập nhật' }
     }
 
+    if (name !== undefined) user.name = name
     if (email !== undefined) user.email = email
     if (sdt !== undefined) user.sdt = sdt
+    if (diachi !== undefined) user.diachi = diachi
     if (vaitro !== undefined) user.vaitro = vaitro
     if (trangthai !== undefined) user.trangthai = trangthai
     await user.save()

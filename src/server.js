@@ -4,6 +4,7 @@ dotenv.config()
 import db from "./models/index.js"
 import os from 'os'
 import cors from 'cors'
+import { Server } from 'socket.io'
 import { AppRoute } from './AppRoute.js'
 import path from 'path';
 
@@ -82,7 +83,39 @@ app.get('/api/health', async (req, res) => {
 });
 
 AppRoute(app)
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+
+
+const server = http.createServer(app)   // ← bọc app bằng http server
+
+export const io = new Server(server, {
+  cors: {
+    origin: true,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  }
 })
 
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id)
+
+  socket.on('join-user', (userId) => {
+    socket.join(`user-${userId}`)
+  })
+
+  socket.on('join-admin', () => {
+    socket.join('admin-room')
+  })
+
+  socket.on('join-product', (sanpham_id) => {
+    socket.join(`product-${sanpham_id}`)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected:', socket.id)
+  })
+})
+
+// ── Listen bằng server thay vì app ────────────────────────────────────────
+server.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})

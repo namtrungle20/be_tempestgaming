@@ -11,7 +11,7 @@ const adminOrUser = requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER])
 
 router.post('/danh-sach', adminOnly, asyncHandler(NguoiDungController.postTatCaNguoiDung));
 router.post('/chi-tiet', adminOrUser, asyncHandler(NguoiDungController.postNguoiDungById));
-router.put('/update', adminOrUser, asyncHandler(NguoiDungController.updateNguoiDung));
-router.delete('/delete', adminOnly, asyncHandler(NguoiDungController.deleteNguoiDung));
+router.put('/update/:id', adminOrUser, asyncHandler(NguoiDungController.updateNguoiDung));
+router.delete('/delete/:id', adminOnly, asyncHandler(NguoiDungController.deleteNguoiDung));
 
 export default router;

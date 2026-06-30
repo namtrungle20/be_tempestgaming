@@ -1,4 +1,5 @@
 import * as NguoiDungService from '../services/NguoiDung.service.js'
+import { io } from '../server.js'
 
 export const postTatCaNguoiDung = async (req, res) => {
     const result = await NguoiDungService.layTatCaNguoiDung(req.body)
@@ -12,8 +13,12 @@ export const postNguoiDungById = async (req, res) => {
 }
 
 export const updateNguoiDung = async (req, res) => {
-    if (!req.body.id) return res.status(400).json({ success: false, message: 'Thiếu ID người dùng' })
-    const data = await NguoiDungService.capNhatNguoiDung(req.body.id, req.body)
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ success: false, message: 'Thiếu ID người dùng' })
+    const data = await NguoiDungService.capNhatNguoiDung(id, req.body)
+
+    io.to(`user-${id}`).emit('profile-updated', data)
+
     return res.status(200).json({ success: true, message: 'Cập nhật người dùng thành công', data })
 }
 

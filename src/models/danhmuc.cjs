@@ -24,14 +24,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    thutu: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-    },
-    trangthai: {
-      type: DataTypes.INTEGER,
-      defaultValue: 1
-    },
+    // thutu: {
+    //   type: DataTypes.INTEGER,
+    //   defaultValue: 0,
+    // },
+    // trangthai: {
+    //   type: DataTypes.INTEGER,
+    //   defaultValue: 1
+    // },
   }, {
     sequelize,
     modelName: 'DanhMuc',

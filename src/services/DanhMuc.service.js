@@ -18,14 +18,12 @@ const buildWhere = ({ search, trangthai }) => {
 };
 
 // Lấy danh sách (phân trang, tìm kiếm, lọc, sắp xếp)
-export const layDanhMuc = async ({ search = '', trangthai, sort_by = 'thutu', sort_order = 'ASC' }) => {
-    const where = buildWhere({ search, trangthai });
-    const order = [[sort_by, sort_order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC']];
+export const layDanhMuc = async ({ search = '' }) => {
+    const where = buildWhere({ search });
 
     const { count, rows } = await db.DanhMuc.findAndCountAll({
         where,
-        order,
-        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai']
+        attributes: ['danhmuc_id', 'ten', 'url', 'mota']
     });
 
     return {
@@ -37,7 +35,7 @@ export const layDanhMuc = async ({ search = '', trangthai, sort_by = 'thutu', so
 // Lấy chi tiết theo ID
 export const layDanhMucTheoId = async (id) => {
     const danhMuc = await db.DanhMuc.findByPk(id, {
-        attributes: ['danhmuc_id', 'ten', 'url', 'mota', 'thutu', 'trangthai']
+        attributes: ['danhmuc_id', 'ten', 'url', 'mota']
     });
     if (!danhMuc) throw { status: 404, message: 'Danh mục không tồn tại' };
     return danhMuc;
@@ -45,7 +43,7 @@ export const layDanhMucTheoId = async (id) => {
 
 // Thêm mới
 export const themDanhMuc = async (data) => {
-    const { ten, url, mota, thutu, trangthai } = data;
+    const { ten, url, mota } = data;
 
     // Kiểm tra tên trùng
     const existed = await db.DanhMuc.findOne({ where: { ten } });
@@ -67,8 +65,6 @@ export const themDanhMuc = async (data) => {
         ten,
         url: finalUrl,
         mota: mota || null,
-        thutu: thutu || 0,
-        trangthai
     });
     return newDanhMuc;
 };
