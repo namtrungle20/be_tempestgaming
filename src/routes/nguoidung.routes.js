@@ -14,4 +14,7 @@ router.post('/chi-tiet', adminOrUser, asyncHandler(NguoiDungController.postNguoi
 router.put('/update/:id', adminOrUser, asyncHandler(NguoiDungController.updateNguoiDung));
 router.delete('/delete/:id', adminOnly, asyncHandler(NguoiDungController.deleteNguoiDung));
 
+router.get('/hang-thanh-vien', adminOrUser, asyncHandler(NguoiDungController.getHangThanhVien));
+router.post('/hang-thanh-vien/update', adminOrUser, asyncHandler(NguoiDungController.updateHang));
+
 export default router;

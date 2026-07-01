@@ -4,6 +4,7 @@ dotenv.config()
 import db from "./models/index.js"
 import os from 'os'
 import cors from 'cors'
+import http from 'http'
 import { Server } from 'socket.io'
 import { AppRoute } from './AppRoute.js'
 import path from 'path';
@@ -85,7 +86,7 @@ app.get('/api/health', async (req, res) => {
 AppRoute(app)
 
 
-const server = http.createServer(app)   // ← bọc app bằng http server
+const server = http.createServer(app)
 
 export const io = new Server(server, {
   cors: {

@@ -33,6 +33,12 @@ export const updateSanPham = async (req, res) => {
     const setDefaultImageId = req.body.setDefaultImageId ? Number(req.body.setDefaultImageId) : null;
 
     const updated = await SanPhamService.capNhatSanPhamVaAnh(id, productData, uploadedImages, deleteImageIds, setDefaultImageId);
+    io.to(`product-${id}`).emit('stock-updated', {
+        sanpham_id: id,
+        soluong: updated.soluong,
+        gia: updated.gia,
+    })
+
     res.json({ success: true, message: 'Cập nhật sản phẩm thành công', data: updated });
 };
 

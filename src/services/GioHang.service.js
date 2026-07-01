@@ -80,6 +80,14 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
     }
     const tongtien = chiTiets.reduce((sum, ct) => sum + ct.soluong * parseFloat(ct.SanPham.gia), 0);
 
+    const COD_MAX_AMOUNT = 5000000;
+    if (phuongthucthanhtoan === PhuongThucThanhToan.COD && Number(gioHang.tongtien) > COD_MAX_AMOUNT) {
+        throw {
+            status: 400,
+            message: `Đơn hàng trên ${COD_MAX_AMOUNT.toLocaleString('vi-VN')}đ chỉ hỗ trợ thanh toán qua MoMo để đảm bảo an toàn giao dịch.`
+        };
+    }
+
     const transaction = await db.sequelize.transaction();
     let donHang;
     try {

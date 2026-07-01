@@ -63,6 +63,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    hang_thanh_vien: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    tong_chi_tieu: {
+      type: DataTypes.DECIMAL(18, 2),
+      allowNull: false,
+      defaultValue: 0,
+    },
     deleted_at: DataTypes.DATE,
     ngayvao: DataTypes.DATE,
     ngayhoatdong: DataTypes.DATE,

@@ -1,3 +1,4 @@
+import { io } from '../server.js';
 import {
     layHoacTaoGioHang,
     themSanPham,
@@ -44,6 +45,18 @@ export const thanhToanGioHang = async (req, res) => {
     const userId = req.user.nguoidung_id;
     const { diachi, sdt, phuongthucthanhtoan } = req.body;
     const donHang = await thanhToan(userId, { diachi, sdt, phuongthucthanhtoan: Number(phuongthucthanhtoan) });
+
+    io.to('admin-room').emit('new-order', {
+        donhang_id: donHang.donhang_id,
+        tongtien: donHang.tongtien,
+    })
+
+    for (const item of donHang.chitiet || []) {
+        io.to(`product-${item.sanpham_id}`).emit('stock-updated', {
+            sanpham_id: item.sanpham_id,
+            soluong: item.sanpham.soluong,
+        })
+    }
     res.status(201).json({ success: true, message: 'Thanh toán thành công', data: donHang })
 };
 
