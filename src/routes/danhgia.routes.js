@@ -1,7 +1,7 @@
 import { getDanhGia, postDanhGia, deleteDanhGia, checkDaMua, getAllDanhGia } from '../controller/DanhGia.controller.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import VaiTroNguoiDung from '../constants/VaiTroNguoiDung.js';
+import { VaiTroNguoiDung } from '../constants/VaiTroNguoiDung.js';
 import { Router } from 'express';
 
 

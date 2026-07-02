@@ -4,7 +4,7 @@ import validate from '../middlewares/validate.middleware.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js'
 import * as AuthController from '../controller/Auth.controller.js';
 import ThemNguoiDungRequest from '../dtos/requests/NguoiDung/ThemNguoiDungRequest.js';
-import VaiTroNguoiDung from '../constants/VaiTroNguoiDung.js';
+import { VaiTroNguoiDung } from '../constants/VaiTroNguoiDung.js';
 
 const router = Router();
 

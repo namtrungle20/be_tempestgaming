@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import db from '../models/index.js';
 import asyncHandler from './asyncHandler.js';
-import TrangThaiTaiKhoan from '../constants/TrangThaiTaiKhoan.js'
+import { TrangThaiTaiKhoan } from '../constants/TrangThaiTaiKhoan.js'
 
 const verifyToken = (token) =>
     new Promise((resolve, reject) => {

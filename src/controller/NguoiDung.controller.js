@@ -29,14 +29,42 @@ export const getHangThanhVien = async (req, res) => {
 };
 
 export const updateHang = async (req, res) => {
-    const nguoidung_id = req.body.nguoidung_id || req.user.nguoidung_id;
-    const data = await NguoiDungService.tinhVaCapNhatHang(nguoidung_id);
+    const nguoidung_id = req.body?.nguoidung_id || req.user.nguoidung_id;
+    const choPhepHaHang = req.body?.choPhepHaHang === true;
+
+    if (choPhepHaHang && req.user.vaitro !== 1) {
+        throw { status: 403, message: 'Chỉ admin mới có quyền hạ hạng' };
+    }
+
+    const data = await NguoiDungService.tinhVaCapNhatHang(nguoidung_id, { choPhepHaHang });
+
     return res.status(200).json({
         success: true,
-        message: data.da_len_hang ? 'Chúc mừng! Bạn đã lên hạng mới' : 'Đã tính lại hạng thành viên',
+        message: data.huong === 'xuong_hang'
+            ? 'Đã đồng bộ lại hạng — hạng đã giảm theo dữ liệu thực tế'
+            : data.huong === 'len_hang'
+                ? 'Chúc mừng! Bạn đã lên hạng mới'
+                : 'Hạng không đổi',
         data,
     });
 };
+
+export const getKiemTraLechHang = async (req, res) => {
+    const result = await NguoiDungService.kiemTraLechHang();
+    return res.status(200).json({ success: true, ...result });
+};
+
+
+export const postDongBoHangLoat = async (req, res) => {
+    const { nguoidung_id } = req.body;
+    const result = await NguoiDungService.dongBoHangLoat(nguoidung_id);
+    return res.status(200).json({
+        success: true,
+        message: `Đã đồng bộ ${result.thanh_cong}/${result.tong_so} người dùng`,
+        ...result,
+    });
+};
+
 
 export const deleteNguoiDung = async (req, res) => {
     if (!req.body.id) return res.status(400).json({ success: false, message: 'Thiếu ID người dùng' })

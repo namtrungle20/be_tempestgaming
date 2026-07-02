@@ -4,7 +4,7 @@ import ThemDanhMucRequest from '../dtos/requests/DanhMuc/ThemDanhMucRequest.js';
 import UpdateDanhMucRequest from '../dtos/requests/DanhMuc/UpdateDanhMuc.js';
 import { getDanhMucs, getDanhMucById, themDanhMuc, updateDanhMuc, xoaDanhMuc } from '../controller/DanhMuc.controller.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
-import VaiTroNguoiDung from '../constants/VaiTroNguoiDung.js';
+import { VaiTroNguoiDung } from '../constants/VaiTroNguoiDung.js';
 import { Router } from 'express';
 
 const router = Router();

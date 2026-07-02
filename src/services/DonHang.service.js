@@ -1,6 +1,8 @@
 import { Op } from 'sequelize'
 import db from '../models/index.js'
 import { TrangThaiDonHang } from '../constants/index.js'
+import { tinhVaCapNhatHang } from './NguoiDung.service.js'
+import { io } from '../server.js'
 
 export const layDonHangs = async ({ search = '', page = 1, trangthai }) => {
     const PAGE_SIZE = 10
@@ -115,6 +117,7 @@ export const capNhatDonHang = async (id, data) => {
 
     const oldStatus = donhang.trangthai;
     const newStatus = data.trangthai;
+    let hangMoi = null;
 
     const transaction = await db.sequelize.transaction();
     try {
@@ -135,7 +138,16 @@ export const capNhatDonHang = async (id, data) => {
                 });
             }
         }
+        if (newStatus === TrangThaiDonHang.DA_THANH_TOAN
+            && oldStatus !== TrangThaiDonHang.DA_THANH_TOAN
+            && donhang.nguoidung_id) {
+            hangMoi = await tinhVaCapNhatHang(donhang.nguoidung_id, { transaction, choPhepHaHang: false });
+        }
+
         await transaction.commit();
+        if (hangMoi && donhang.nguoidung_id) {
+            io.to(`user-${donhang.nguoidung_id}`).emit('rank-updated', hangMoi);
+        }
     } catch (error) {
         await transaction.rollback();
         throw error;

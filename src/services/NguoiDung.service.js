@@ -6,9 +6,9 @@ import { HangThanhVien, TrangThaiDonHang, TrangThaiTaiKhoan } from '../constants
 
 const NGUONG_HANG = [
     { hang: HangThanhVien.dong, tu: 0, label: 'Đồng', giamShip: 0 },
-    { hang: HangThanhVien.bac, tu: 5_000_000, label: 'Bạc', giamShip: 50 },
-    { hang: HangThanhVien.vang, tu: 20_000_000, label: 'Vàng', giamShip: 100 },
-    { hang: HangThanhVien.kim_cuong, tu: 50_000_000, label: 'Kim Cương', giamShip: 100 },
+    { hang: HangThanhVien.bac, tu: 5000000, label: 'Bạc', giamShip: 5 },
+    { hang: HangThanhVien.vang, tu: 20000000, label: 'Vàng', giamShip: 50 },
+    { hang: HangThanhVien.kim_cuong, tu: 50000000, label: 'Kim Cương', giamShip: 100 },
 ];
 const xacDinhHang = (tongChiTieu) => {
     for (let i = NGUONG_HANG.length - 1; i >= 0; i--) {
@@ -19,10 +19,8 @@ const xacDinhHang = (tongChiTieu) => {
 
 const layThongTinHang = (hang) => NGUONG_HANG.find(h => h.hang === hang) || NGUONG_HANG[0];
 
-const layTienDoLenHang = (tongChiTieu) => {
-    const hangHienTai = xacDinhHang(tongChiTieu);
-
-    if (hangHienTai === NGUONG_HANG.length - 1) {
+const layTienDoLenHang = (tongChiTieu, hangHienTai) => {
+    if (hangHienTai >= NGUONG_HANG.length - 1) {
         return { hangTiepTheo: null, labelTiepTheo: null, conThieu: 0, phanTramTienDo: 100 };
     }
 
@@ -32,7 +30,7 @@ const layTienDoLenHang = (tongChiTieu) => {
 
     const conThieu = Math.max(0, ttTiepTheo.tu - tongChiTieu);
     const khoangCach = ttTiepTheo.tu - ttHienTai.tu;
-    const daDi = tongChiTieu - ttHienTai.tu;
+    const daDi = Math.max(0, tongChiTieu - ttHienTai.tu);
     const phanTramTienDo = khoangCach > 0 ? Math.min(100, Math.round((daDi / khoangCach) * 100)) : 100;
 
     return { hangTiepTheo, labelTiepTheo: ttTiepTheo.label, conThieu, phanTramTienDo };
@@ -103,7 +101,7 @@ export const capNhatNguoiDung = async (id, { name, email, sdt, diachi, vaitro, t
 }
 
 
-export const tinhVaCapNhatHang = async (nguoidung_id, transaction = null) => {
+export const tinhVaCapNhatHang = async (nguoidung_id, { transaction = null, choPhepHaHang = false } = {}) => {
     const user = await db.NguoiDung.findByPk(nguoidung_id, { transaction });
     if (!user) throw { status: 404, message: 'Không tìm thấy người dùng' };
 
@@ -115,10 +113,13 @@ export const tinhVaCapNhatHang = async (nguoidung_id, transaction = null) => {
         transaction,
     }) || 0;
 
-
-    const hangMoi = xacDinhHang(tongChiTieu);
+    const hangTinhDuoc = xacDinhHang(tongChiTieu);
     const hangCu = user.hang_thanh_vien;
-    const hangCuoiCung = hangMoi > hangCu ? hangMoi : hangCu;
+
+    // Mặc định chỉ nâng hạng (giữ hạng cao nhất); nếu choPhepHaHang thì lấy đúng hạng tính được
+    const hangCuoiCung = choPhepHaHang
+        ? hangTinhDuoc
+        : (hangTinhDuoc > hangCu ? hangTinhDuoc : hangCu);
 
     await user.update({
         tong_chi_tieu: tongChiTieu,
@@ -128,7 +129,75 @@ export const tinhVaCapNhatHang = async (nguoidung_id, transaction = null) => {
     return {
         hang_thanh_vien: hangCuoiCung,
         tong_chi_tieu: tongChiTieu,
-        da_len_hang: hangMoi > hangCu,
+        da_thay_doi: hangCuoiCung !== hangCu,
+        huong: hangCuoiCung > hangCu ? 'len_hang' : hangCuoiCung < hangCu ? 'xuong_hang' : 'khong_doi',
+    };
+};
+
+
+export const kiemTraLechHang = async () => {
+    const users = await db.NguoiDung.findAll({
+        where: { trangthai: { [Op.ne]: TrangThaiTaiKhoan.DA_XOA } },
+        attributes: ['nguoidung_id', 'name', 'hang_thanh_vien'],
+        raw: true,
+    });
+
+    const ketQua = [];
+    for (const user of users) {
+        const tongChiTieuThucTe = await db.DonHang.sum('tongtien', {
+            where: {
+                nguoidung_id: user.nguoidung_id,
+                trangthai: TrangThaiDonHang.DA_THANH_TOAN,
+            },
+        }) || 0;
+
+        const hangTinhLai = xacDinhHang(tongChiTieuThucTe);
+
+        if (hangTinhLai !== user.hang_thanh_vien) {
+            ketQua.push({
+                nguoidung_id: user.nguoidung_id,
+                name: user.name,
+                hang_dang_luu: user.hang_thanh_vien,
+                hang_tinh_lai: hangTinhLai,
+                tong_chi_tieu_thuc_te: tongChiTieuThucTe,
+                se_bi: hangTinhLai > user.hang_thanh_vien ? 'len_hang' : 'xuong_hang',
+            });
+        }
+    }
+
+    return { data: ketQua, total_lech: ketQua.length };
+};
+
+export const dongBoHangLoat = async (nguoidungIds) => {
+    let ids = nguoidungIds;
+
+    // Nếu không truyền ids → lấy tất cả user (trừ đã xóa)
+    if (!Array.isArray(ids) || ids.length === 0) {
+        const allUsers = await db.NguoiDung.findAll({
+            where: { trangthai: { [Op.ne]: TrangThaiTaiKhoan.DA_XOA } },
+            attributes: ['nguoidung_id'],
+            raw: true,
+        });
+        ids = allUsers.map(u => u.nguoidung_id);
+    }
+
+    if (ids.length === 0) {
+        throw { status: 400, message: 'Không có người dùng nào để đồng bộ' };
+    }
+
+    const ketQua = [];
+    for (const id of ids) {
+        try {
+            const data = await tinhVaCapNhatHang(id, { choPhepHaHang: true });
+            ketQua.push({ nguoidung_id: id, success: true, ...data });
+        } catch (err) {
+            ketQua.push({ nguoidung_id: id, success: false, message: err.message });
+        }
+    }
+    return {
+        data: ketQua,
+        tong_so: ketQua.length,
+        thanh_cong: ketQua.filter(r => r.success).length,
     };
 };
 
@@ -138,14 +207,15 @@ export const layThongTinHangThanhVien = async (nguoidung_id) => {
     });
     if (!user) throw { status: 404, message: 'Không tìm thấy người dùng' };
 
+    const tongChiTieu = Number(user.tong_chi_tieu);
     const thongTinHang = layThongTinHang(user.hang_thanh_vien);
-    const tienDo = layTienDoLenHang(Number(user.tong_chi_tieu));
+    const tienDo = layTienDoLenHang(tongChiTieu, user.hang_thanh_vien);
 
     return {
         hang_thanh_vien: user.hang_thanh_vien,
         label: thongTinHang.label,
         giam_ship: thongTinHang.giamShip,
-        tong_chi_tieu: Number(user.tong_chi_tieu),
+        tong_chi_tieu: tongChiTieu,
         ...tienDo,
     };
 };
