@@ -5,6 +5,9 @@ import { TrangThaiDonHang } from '../constants/index.js'
 import { PhuongThucThanhToan, TrangThaiThanhToan } from '../constants/index.js';
 import { createMomoPayment } from './ThanhToan.service.js';
 import { upsertChiTiet, capNhatTongTienGioHang } from './ChiTietGioHang.service.js'
+import { tinhPhiShip } from '../utils/phiship.until.js';
+import { layThongTinHang } from './NguoiDung.service.js';
+
 
 
 // USER
@@ -61,7 +64,7 @@ export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
 };
 
 // Thanh toán: chuyển giỏ hàng thành đơn hàng
-export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan = PhuongThucThanhToan.TAI_CUA_HANG }) => {
+export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan }) => {
 
     const items = await db.GioHang.findAll({
         where: { nguoidung_id },
@@ -78,10 +81,18 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
     if (!chiTiets.length) {
         throw { status: 404, message: 'Giỏ hàng trống, không thể thanh toán' }
     }
-    const tongtien = chiTiets.reduce((sum, ct) => sum + ct.soluong * parseFloat(ct.SanPham.gia), 0);
+    const tienSP = chiTiets.reduce((sum, ct) => sum + ct.soluong * parseFloat(ct.SanPham.gia), 0);
+
+    const user = await db.NguoiDung.findByPk(nguoidung_id);
+    if (!user) throw { status: 404, message: 'Không tìm thấy người dùng' };
+
+    const thongTinHang = layThongTinHang(user.hang_thanh_vien);
+    const phiVanChuyen = tinhPhiShip(thongTinHang.giamShip);
+
+    const tongtien = tienSP + phiVanChuyen;
 
     const COD_MAX_AMOUNT = 5000000;
-    if (phuongthucthanhtoan === PhuongThucThanhToan.COD && Number(gioHang.tongtien) > COD_MAX_AMOUNT) {
+    if (phuongthucthanhtoan === PhuongThucThanhToan.COD && tongtien > COD_MAX_AMOUNT) {
         throw {
             status: 400,
             message: `Đơn hàng trên ${COD_MAX_AMOUNT.toLocaleString('vi-VN')}đ chỉ hỗ trợ thanh toán qua MoMo để đảm bảo an toàn giao dịch.`
@@ -93,6 +104,7 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
     try {
         donHang = await db.DonHang.create({
             nguoidung_id, tongtien,
+            phi_van_chuyen: phiVanChuyen,
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
             diachi, sdt, phuongthucthanhtoan
         }, { transaction });

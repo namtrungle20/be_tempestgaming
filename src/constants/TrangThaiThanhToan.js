@@ -1,5 +1,5 @@
 export const PhuongThucThanhToan = {
-    TAI_CUA_HANG: 0,
+    COD: 0,
     MOMO: 1,
     VNPAY: 2,
     BANK_TRANSFER: 3,

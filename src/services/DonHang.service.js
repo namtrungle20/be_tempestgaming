@@ -83,11 +83,16 @@ export const layDonHangTheoNguoiDung = async (nguoidung_id, { page = 1, trangtha
     return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) };
 };
 
-export const xoaDonHang = async (id) => {
+export const xoaDonHang = async (id, nguoidung_id, isAdmin = false) => {
     const donhang = await db.DonHang.findByPk(id, {
-        include: [{ model: db.ChiTietDonHang }]
+        include: [{ model: db.ChiTietDonHang, as: 'ChiTietDonHangs' }]
     });
     if (!donhang) throw { status: 404, message: 'Không tìm thấy đơn hàng' };
+
+    if (!isAdmin && donhang.nguoidung_id !== nguoidung_id) {
+        throw { status: 403, message: 'Bạn không có quyền huỷ đơn hàng này' };
+    }
+
     if (donhang.trangthai !== TrangThaiDonHang.CHO_XAC_NHAN) {
         throw { status: 400, message: 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận' };
     }
@@ -145,12 +150,19 @@ export const capNhatDonHang = async (id, data) => {
         }
 
         await transaction.commit();
-        if (hangMoi && donhang.nguoidung_id) {
-            io.to(`user-${donhang.nguoidung_id}`).emit('rank-updated', hangMoi);
-        }
     } catch (error) {
         await transaction.rollback();
         throw error;
     }
+
+    if (hangMoi && donhang.nguoidung_id) {
+        try {
+            io.to(`user-${donhang.nguoidung_id}`).emit('rank-updated', hangMoi);
+        } catch (socketError) {
+            console.error('Lỗi emit socket rank-updated:', socketError);
+            // không throw — vì DB đã lưu thành công, không nên fail cả request chỉ vì socket lỗi
+        }
+    }
+
     return await db.DonHang.findByPk(id);
 };

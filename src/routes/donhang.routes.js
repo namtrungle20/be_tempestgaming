@@ -17,7 +17,7 @@ router.get('/me', adminOrUser, asyncHandler(DonHangController.getMyDonHangs));
 router.get('/', asyncHandler(DonHangController.getDonHangs));
 router.get('/:id', asyncHandler(DonHangController.getDonHangById));
 router.put('/:id', adminOrUser, validate(UpdateDonHangRequest), asyncHandler(DonHangController.updateDonHang));
-router.delete('/:id', adminOnly, asyncHandler(DonHangController.xoaDonHang));
+router.delete('/:id', adminOrUser, asyncHandler(DonHangController.xoaDonHang));
 
 // Chi tiết đơn hàng
 router.get('/chitiet/all', asyncHandler(ChiTietDonHangController.getChiTietDonHangs));

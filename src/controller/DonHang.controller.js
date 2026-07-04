@@ -1,5 +1,6 @@
 import * as DonHangService from '../services/DonHang.service.js'
 import { io } from '../server.js'
+import { VaiTroNguoiDung } from '../constants/index.js'
 
 export const getDonHangs = async (req, res) => {
     const result = await DonHangService.layDonHangs(req.query)
@@ -17,8 +18,9 @@ export const getMyDonHangs = async (req, res) => {
 };
 
 export const xoaDonHang = async (req, res) => {
-    await DonHangService.xoaDonHang(req.params.id)
-    return res.status(200).json({ message: 'Đơn hàng đã đánh dấu là Đã Hủy' })
+    const laAdmin = req.user.vaitro === VaiTroNguoiDung.ADMIN
+    await DonHangService.xoaDonHang(req.params.id, req.user.nguoidung_id, laAdmin)
+    res.json({ success: true, message: 'Huỷ đơn hàng thành công' })
 }
 
 export const updateDonHang = async (req, res) => {

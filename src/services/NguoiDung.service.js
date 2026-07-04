@@ -17,7 +17,7 @@ const xacDinhHang = (tongChiTieu) => {
     return HangThanhVien.dong;
 };
 
-const layThongTinHang = (hang) => NGUONG_HANG.find(h => h.hang === hang) || NGUONG_HANG[0];
+export const layThongTinHang = (hang) => NGUONG_HANG.find(h => h.hang === hang) || NGUONG_HANG[0];
 
 const layTienDoLenHang = (tongChiTieu, hangHienTai) => {
     if (hangHienTai >= NGUONG_HANG.length - 1) {
