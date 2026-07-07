@@ -4,21 +4,42 @@ import { TrangThaiDonHang } from '../constants/index.js'
 import { tinhVaCapNhatHang } from './NguoiDung.service.js'
 import { io } from '../server.js'
 
-export const layDonHangs = async ({ search = '', page = 1, trangthai }) => {
+export const layDonHangs = async ({ search = '', page = 1, trangthai, created_at }) => {
     const PAGE_SIZE = 10
     const offset = (page - 1) * PAGE_SIZE
     const where = {}
+    // const nguoiDungWhere = {}
+    let requireNguoiDung = false
 
     if (search.trim()) {
+        const searchTerm = search.trim()
+        requireNguoiDung = true
         where[Op.or] = [
-            { donhang_id: { [Op.like]: `%${search}%` } },
+            { sdt: { [Op.like]: `%${searchTerm}%` } },
+            { '$NguoiDung.name$': { [Op.like]: `%${searchTerm}%` } },
+            { '$NguoiDung.email$': { [Op.like]: `%${searchTerm}%` } },
+            // { '$NguoiDung.sdt$': { [Op.like]: `%${searchTerm}%` } },
         ]
     }
+
+    if (created_at) {
+        const startOfDay = new Date(`${created_at}T00:00:00`)
+        const endOfDay = new Date(`${created_at}T23:59:59.999`)
+        where.created_at = { [Op.between]: [startOfDay, endOfDay] }
+    }
+
     if (trangthai) where.trangthai = trangthai
 
+    const includeNguoiDung = {
+        model: db.NguoiDung,
+        as: 'NguoiDung',
+        attributes: ['nguoidung_id', 'name', 'email', 'sdt'],
+        required: requireNguoiDung
+    }
+
     const [data, total] = await Promise.all([
-        db.DonHang.findAll({ where, order: [['created_at', 'DESC']], limit: PAGE_SIZE, offset }),
-        db.DonHang.count({ where })
+        db.DonHang.findAll({ where, include: [includeNguoiDung], order: [['created_at', 'DESC']], limit: PAGE_SIZE, offset, subQuery: false }),
+        db.DonHang.count({ where, include: [includeNguoiDung] })
     ])
     return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) }
 }
