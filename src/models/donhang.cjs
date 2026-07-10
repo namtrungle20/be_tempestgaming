@@ -23,12 +23,17 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     nguoidung_id: {
-      type: DataTypes.UUID,           // PHẢI là UUID để khớp với model NguoiDung
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: 'NguoiDungs',
         key: 'nguoidung_id'
       }
+    },
+    phi_van_chuyen: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: 0,
     },
     tongtien: {
       type: DataTypes.DECIMAL(18, 2),
