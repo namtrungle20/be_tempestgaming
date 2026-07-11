@@ -70,9 +70,29 @@ export const layDanhGiaTheoSanPham = async ({ sanpham_id, page = 1, limit = 10 }
     };
 };
 
-export const layTatCaDanhGia = async ({ page = 1, limit = 10, sosao }) => {
+export const layTatCaDanhGia = async ({ page = 1, limit = 10, sosao, search, tuNgay, denNgay }) => {
     const where = {}
     if (sosao) where.sosao = sosao
+
+    if (tuNgay || denNgay) {
+        where.created_at = {}
+        if (tuNgay) where.created_at[Op.gte] = new Date(tuNgay)
+        if (denNgay) {
+            // denNgay lấy đến cuối ngày (23:59:59)
+            const end = new Date(denNgay)
+            end.setHours(23, 59, 59, 999)
+            where.created_at[Op.lte] = end
+        }
+    }
+
+    const searchTerm = search?.trim()
+    if (searchTerm) {
+        where[Op.or] = [
+            { binhluan: { [Op.like]: `%${searchTerm}%` } },
+            { '$NguoiDung.name$': { [Op.like]: `%${searchTerm}%` } },
+            { '$SanPham.name$': { [Op.like]: `%${searchTerm}%` } },
+        ]
+    }
     const { rows, count } = await db.DanhGia.findAndCountAll({
         where,
         include: [
@@ -82,6 +102,7 @@ export const layTatCaDanhGia = async ({ page = 1, limit = 10, sosao }) => {
         order: [['created_at', 'DESC']],
         limit: Number(limit),
         offset: (page - 1) * limit,
+        subQuery: false,
     })
     return { data: rows, total: count }
 }

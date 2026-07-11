@@ -1,4 +1,4 @@
-import { Op } from 'sequelize'
+import { Op, fn, col, literal } from 'sequelize'
 import db from '../models/index.js'
 import { TrangThaiDonHang } from '../constants/index.js'
 import { tinhVaCapNhatHang } from './NguoiDung.service.js'
@@ -181,9 +181,80 @@ export const capNhatDonHang = async (id, data) => {
             io.to(`user-${donhang.nguoidung_id}`).emit('rank-updated', hangMoi);
         } catch (socketError) {
             console.error('Lỗi emit socket rank-updated:', socketError);
-            // không throw — vì DB đã lưu thành công, không nên fail cả request chỉ vì socket lỗi
         }
     }
 
     return await db.DonHang.findByPk(id);
 };
+
+export const thongKeDoanhThu7Ngay = async () => {
+    const ngayBatDau = new Date()
+    ngayBatDau.setDate(ngayBatDau.getDate() - 6)
+    ngayBatDau.setHours(0, 0, 0, 0)
+
+    const result = await db.DonHang.findAll({
+        where: {
+            trangthai: { [Op.in]: [TrangThaiDonHang.DA_THANH_TOAN] },
+            createdAt: { [Op.gte]: ngayBatDau }
+        },
+        attributes: [
+            [fn('DATE', col('created_at')), 'ngay'],
+            [fn('SUM', col('tongtien')), 'doanhthu'],
+        ],
+        group: [fn('DATE', col('created_at'))],
+        order: [[fn('DATE', col('created_at')), 'ASC']],
+        raw: true,
+    })
+
+    // Fill đủ 7 ngày kể cả ngày không có đơn
+    const map = {}
+    result.forEach(r => { map[r.ngay] = Number(r.doanhthu) })
+
+    const days = []
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        const key = d.toISOString().slice(0, 10)
+        days.push({
+            ngay: d.toLocaleDateString('vi-VN', { month: 'numeric', day: 'numeric' }),
+            doanhthu: map[key] || 0,
+        })
+    }
+    return days
+}
+
+export const topSanPhamBanChay = async (limit = 5) => {
+    const result = await db.ChiTietDonHang.findAll({
+        attributes: [
+            'sanpham_id',
+            [fn('SUM', col('ChiTietDonHang.soluong')), 'soLuongBan'],
+        ],
+        include: [{
+            model: db.SanPham,
+            as: 'SanPham',
+            attributes: ['name'],
+        }],
+        group: ['ChiTietDonHang.sanpham_id', 'SanPham.sanpham_id'],
+        order: [[literal('soLuongBan'), 'DESC']],
+        limit,
+        raw: true,
+        nest: true,
+    })
+
+    return result.map(r => ({
+        sanpham_id: r.sanpham_id,
+        ten: r.SanPham?.name || r.sanpham_id,
+        soLuongBan: Number(r.soLuongBan),
+    }))
+}
+
+export const tongDoanhThu = async () => {
+    const result = await db.DonHang.findOne({
+        where: {
+            trangthai: { [Op.in]: [TrangThaiDonHang.DA_THANH_TOAN] }
+        },
+        attributes: [[fn('SUM', col('tongtien')), 'total']],
+        raw: true,
+    })
+    return Number(result?.total || 0)
+}

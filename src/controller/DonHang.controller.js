@@ -31,3 +31,15 @@ export const updateDonHang = async (req, res) => {
     })
     return res.status(200).json({ message: 'Cập nhật đơn hàng thành công', data })
 }
+
+export const getThongKe = async (req, res) => {
+    const [doanhThu7Ngay, topSanPham, tongTien] = await Promise.all([
+        DonHangService.thongKeDoanhThu7Ngay(),
+        DonHangService.topSanPhamBanChay(5),
+        DonHangService.tongDoanhThu(),
+    ])
+    return res.status(200).json({
+        success: true,
+        data: { doanhThu7Ngay, topSanPham, tongTien }
+    })
+}

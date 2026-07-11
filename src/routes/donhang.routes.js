@@ -26,4 +26,6 @@ router.post('/chitiet', adminOnly, asyncHandler(ChiTietDonHangController.themChi
 router.put('/chitiet/:id', asyncHandler(ChiTietDonHangController.updateChiTietDonHang));
 router.delete('/chitiet/:id', adminOnly, asyncHandler(ChiTietDonHangController.xoaChiTietDonHang));
 
+router.get('/thongke/dashboard', adminOnly, asyncHandler(DonHangController.getThongKe));
+
 export default router;

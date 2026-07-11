@@ -16,7 +16,6 @@ module.exports = (sequelize, DataTypes) => {
       NguoiDung.hasMany(models.DanhGia, { foreignKey: 'nguoidung_id' });//user_id
       NguoiDung.hasMany(models.DonHang, { foreignKey: 'nguoidung_id' });
       NguoiDung.hasMany(models.Session, { foreignKey: 'nguoidung_id' });
-      NguoiDung.hasMany(models.Verification, { foreignKey: 'nguoidung_id', as: 'Verifications' });
     }
   }
   NguoiDung.init({
