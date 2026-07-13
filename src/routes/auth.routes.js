@@ -16,4 +16,7 @@ router.get('/me', requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER]), 
 
 router.post('/google', asyncHandler(AuthController.loginGoogle))
 
+router.post('/quenmatkhau', asyncHandler(AuthController.postQuenMatKhau))
+router.post('/datlaimatkhau', asyncHandler(AuthController.postDatLaiMatKhau))
+
 export default router;

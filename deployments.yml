@@ -69,3 +69,4 @@ networks:
 #docker-compose -f ./deployments.yml up -d phpmyadmin  //up len
 #docker-compose -f ./deployments.yml up -d  //up len
 #docker-compose -f ./deployments.yml down   // tat
+#docker compose -f deployments.yml exec backend npm install i ... //up frameword len docker

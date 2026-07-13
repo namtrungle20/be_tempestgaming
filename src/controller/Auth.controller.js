@@ -34,3 +34,15 @@ export const loginGoogle = async (req, res) => {
     const data = await AuthService.loginWithGoogle(idToken, res);
     return res.status(200).json({ success: true, data });
 };
+
+export const postQuenMatKhau = async (req, res) => {
+    const { email, sdt } = req.body
+    const result = await AuthService.quenMatKhau({ email, sdt })
+    return res.status(200).json({ success: true, ...result })
+}
+
+export const postDatLaiMatKhau = async (req, res) => {
+    const { token, matKhauMoi } = req.body
+    const result = await AuthService.datLaiMatKhau(token, matKhauMoi)
+    return res.status(200).json({ success: true, ...result })
+}

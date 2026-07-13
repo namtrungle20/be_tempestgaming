@@ -7,6 +7,7 @@ import ResponseNguoiDung from '../dtos/responses/ResponseNguoiDung.js'
 import { VaiTroNguoiDung, TrangThaiTaiKhoan } from '../constants/index.js'
 import { verifyRefreshToken } from '../helpers/refreshToken.helper.js'
 import admin from '../config/firebaseConfig.js'
+import { guiEmailResetPassword } from './Email.service.js'
 
 export const generateAccessToken = (nguoidung_id, vaitro) =>
     jwt.sign({ nguoidung_id, vaitro }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRES_IN })
@@ -123,3 +124,93 @@ export const loginWithGoogle = async (idToken, res) => {
 
     return { nguoidung: new ResponseNguoiDung(nguoidung), accessToken, refreshToken };
 };
+
+
+export const quenMatKhau = async ({ email, sdt }) => {
+    console.log('🔵 quenMatKhau called:', email, sdt)
+    if (!sdt) throw { status: 400, message: 'Vui lòng nhập số điện thoại' }
+    if (!email) throw { status: 400, message: 'Vui lòng nhập email' }
+
+    const GENERIC_MESSAGE = 'Nếu email hoặc số điện thoại tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.'
+
+    const user = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: [{ sdt }, { email }] } })
+    console.log('🔵 user found:', user?.nguoidung_id, user?.email)
+
+    if (!user) return { message: GENERIC_MESSAGE }
+
+    if (user.trangthai === TrangThaiTaiKhoan.BI_KHOA)
+        throw { status: 403, message: 'Tài khoản đã bị khóa. Vui lòng liên hệ Admin.' }
+
+    if (user.trangthai === TrangThaiTaiKhoan.DA_XOA)
+        throw { status: 403, message: 'Tài khoản không tồn tại.' }
+
+    if (!user.password)
+        throw { status: 400, message: 'Tài khoản này đăng nhập bằng Google. Vui lòng dùng nút Đăng nhập Google.' }
+
+    const emailTrim = email.trim().toLowerCase()
+    if (!user.email) {
+        // Tài khoản chưa có email -> gắn email mới nhập vào tài khoản
+        await user.update({ email: emailTrim })
+        // console.log('🟢 đã gắn email mới vào tài khoản:', user.nguoidung_id, emailTrim)
+    } else if (user.email.toLowerCase() !== emailTrim) {
+        // console.log('🟡 tài khoản đã có email khác, từ chối gắn email mới:', user.nguoidung_id)
+        throw {
+            status: 400,
+            message: 'Số điện thoại này đã liên kết với một email khác. Vui lòng nhập đúng email đã đăng ký.'
+        }
+    }
+
+    // Tạo JWT reset token — hết hạn 15 phút
+    const resetToken = jwt.sign(
+        { nguoidung_id: user.nguoidung_id, email: user.email },
+        process.env.JWT_SECRET_KEY,
+        { expiresIn: process.env.JWT_EXPIRES_IN }
+    )
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+    console.log('🔵 resetLink:', resetLink)
+    console.log('🔵 sending email to:', email)
+
+    await guiEmailResetPassword(email, resetLink)
+    console.log('🔵 email sent successfully')
+
+    return { message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.' }
+}
+
+export const datLaiMatKhau = async (token, matKhauMoi) => {
+    if (!token) throw { status: 400, message: 'Thiếu token' }
+    if (!matKhauMoi || matKhauMoi.length < 6)
+        throw { status: 400, message: 'Mật khẩu mới phải có ít nhất 6 ký tự' }
+
+    let decoded
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET_KEY)
+    } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+            throw { status: 400, message: 'Link đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu lại.' }
+        }
+        throw { status: 400, message: 'Link không hợp lệ.' }
+    }
+
+    const user = await db.NguoiDung.findByPk(decoded.nguoidung_id)
+    if (!user) throw { status: 404, message: 'Không tìm thấy tài khoản' }
+
+    if (user.password) {
+        const isSamePassword = await argon2.verify(user.password, matKhauMoi)
+        if (isSamePassword) {
+            throw { status: 400, message: 'Mật khẩu mới không được trùng với mật khẩu hiện tại' }
+        }
+    }
+
+    // Hash và lưu mật khẩu mới
+    const hashedPassword = await argon2.hash(matKhauMoi)
+    await user.update({ password: hashedPassword })
+
+    // Revoke toàn bộ session hiện tại — bắt đăng nhập lại
+    await db.Session.update(
+        { is_revoked: true },
+        { where: { nguoidung_id: user.nguoidung_id } }
+    )
+
+    return { message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.' }
+}
