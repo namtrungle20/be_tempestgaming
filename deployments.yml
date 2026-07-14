@@ -60,7 +60,9 @@ networks:
   be_tempestgaming:
     name: be_tempestgaming
     driver: bridge
-
+    
+volumes:
+  db_data:
 
 
 

@@ -13,6 +13,9 @@ module.exports = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT),
     dialect: process.env.DB_DIALECT,
+    "dialectOptions": {
+      "charset": "utf8mb4"
+    }
   },
 
   // production: {

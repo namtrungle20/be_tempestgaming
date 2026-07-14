@@ -5,26 +5,45 @@ import * as HinhAnhSanPhamService from './HinhAnhSanPham.service.js';
 const { Op } = Sequelize
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+const validateId = (value, fieldName) => {
+    if (!value) return // không truyền thì bỏ qua
+    if (!Number.isInteger(Number(value)) || Number(value) <= 0) {
+        throw { status: 400, message: `${fieldName} không hợp lệ` }
+    }
+}
 
 const buildSearchWhere = (search) => {
     if (!search.trim()) return {}
+    const term = search.trim().slice(0, 100)
+    const escaped = term.replace(/[%_\\]/g, '\\$&')
     return {
         [Op.or]: [
-            { name: { [Op.like]: `%${search}%` } },
-            { mota: { [Op.like]: `%${search}%` } },
-            { sanpham_id: { [Op.like]: `%${search}%` } },
+            { name: { [Op.like]: `%${escaped}%` } },
+            // { mota: { [Op.like]: `%${search}%` } },
+            { sanpham_id: { [Op.like]: `%${escaped}%` } },
         ]
     }
 }
 
 const buildFilterWhere = ({ search, loai_id, thuonghieu_id, gia_min, gia_max }) => {
+
+    validateId(loai_id, 'loai_id')
+    validateId(thuonghieu_id, 'thuonghieu_id')
+
     const where = { deleted_at: null, ...buildSearchWhere(search) };
+
     if (loai_id) where.loai_id = loai_id
     if (thuonghieu_id) where.thuonghieu_id = thuonghieu_id
     if (gia_min || gia_max) {
+        const min = Number(gia_min)
+        const max = Number(gia_max)
+
+        if (min < 0 || max < 0) throw { status: 400, message: 'Giá không hợp lệ' }
+        if (min && max && min > max) throw { status: 400, message: 'Giá tối thiểu không được lớn hơn giá tối đa' }
+
         where.gia = {}
-        if (gia_min) where.gia[Op.gte] = Number(gia_min)
-        if (gia_max) where.gia[Op.lte] = Number(gia_max)
+        if (min) where.gia[Op.gte] = min
+        if (max) where.gia[Op.lte] = max
     }
     return where
 }

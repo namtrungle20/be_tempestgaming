@@ -12,22 +12,21 @@ import { guiEmailResetPassword } from './Email.service.js'
 export const generateAccessToken = (nguoidung_id, vaitro) =>
     jwt.sign({ nguoidung_id, vaitro }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRES_IN })
 
-export const dangKy = async ({ name, sdt, email, password }) => {
+export const dangKy = async ({ name, sdt, password }) => {
     if (!name) throw { status: 400, message: 'Vui lòng cung cấp tên' }
     if (!sdt) throw { status: 400, message: 'Vui lòng cung cấp số điện thoại' }
     if (!password) throw { status: 400, message: 'Vui lòng cung cấp mật khẩu' }
 
     const orConditions = [{ sdt }]
-    if (email) orConditions.push({ email })
+    if (name) orConditions.push({ name })
 
     const existed = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: orConditions } })
-    if (existed) throw { status: 409, message: 'Name, email hoặc số điện thoại đã được sử dụng' }
+    if (existed) throw { status: 409, message: 'Name, số điện thoại đã được sử dụng' }
 
     const hashedPassword = password ? await argon2.hash(password) : null
     const nguoidung = await db.NguoiDung.create({
         nguoidung_id: uuidv7(),
         name,
-        email: email || null,
         sdt,
         vaitro: VaiTroNguoiDung.USER,
         password: hashedPassword
@@ -127,14 +126,14 @@ export const loginWithGoogle = async (idToken, res) => {
 
 
 export const quenMatKhau = async ({ email, sdt }) => {
-    console.log('🔵 quenMatKhau called:', email, sdt)
+    // console.log('🔵 quenMatKhau called:', email, sdt)
     if (!sdt) throw { status: 400, message: 'Vui lòng nhập số điện thoại' }
     if (!email) throw { status: 400, message: 'Vui lòng nhập email' }
 
     const GENERIC_MESSAGE = 'Nếu email hoặc số điện thoại tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.'
 
     const user = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: [{ sdt }, { email }] } })
-    console.log('🔵 user found:', user?.nguoidung_id, user?.email)
+    // console.log('🔵 user found:', user?.nguoidung_id, user?.email)
 
     if (!user) return { message: GENERIC_MESSAGE }
 
@@ -168,11 +167,11 @@ export const quenMatKhau = async ({ email, sdt }) => {
     )
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
-    console.log('🔵 resetLink:', resetLink)
-    console.log('🔵 sending email to:', email)
+    // console.log('🔵 resetLink:', resetLink)
+    // console.log('🔵 sending email to:', email)
 
     await guiEmailResetPassword(email, resetLink)
-    console.log('🔵 email sent successfully')
+    // console.log('🔵 email sent successfully')
 
     return { message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.' }
 }

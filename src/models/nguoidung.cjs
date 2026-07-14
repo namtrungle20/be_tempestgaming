@@ -54,14 +54,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0
     },
-    sdt_verified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    email_verified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
     hang_thanh_vien: {
       type: DataTypes.INTEGER,
       allowNull: false,
