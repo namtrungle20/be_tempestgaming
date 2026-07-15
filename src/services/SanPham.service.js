@@ -14,13 +14,16 @@ const validateId = (value, fieldName) => {
 
 const buildSearchWhere = (search) => {
     if (!search.trim()) return {}
-    const term = search.trim().slice(0, 100)
-    const escaped = term.replace(/[%_\\]/g, '\\$&')
+    const term = search.trim()
+    if (term.length < 2) return {}
+    const escaped = term.slice(0, 100).replace(/[%_\\]/g, '\\$&')
     return {
         [Op.or]: [
             { name: { [Op.like]: `%${escaped}%` } },
             // { mota: { [Op.like]: `%${search}%` } },
             { sanpham_id: { [Op.like]: `%${escaped}%` } },
+            { '$ThuongHieu.name$': { [Op.like]: `%${escaped}%` } },
+            { '$LoaiSanPham.name$': { [Op.like]: `%${escaped}%` } },
         ]
     }
 }
