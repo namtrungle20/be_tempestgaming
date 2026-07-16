@@ -13,6 +13,7 @@ const validateId = (value, fieldName) => {
 }
 
 const buildSearchWhere = (search) => {
+    // console.log('🔵 buildSearchWhere called:', JSON.stringify(search))
     if (!search.trim()) return {}
     const term = search.trim()
     if (term.length < 2) return {}
@@ -22,7 +23,7 @@ const buildSearchWhere = (search) => {
             { name: { [Op.like]: `%${escaped}%` } },
             // { mota: { [Op.like]: `%${search}%` } },
             { sanpham_id: { [Op.like]: `%${escaped}%` } },
-            { '$ThuongHieu.name$': { [Op.like]: `%${escaped}%` } },
+            // { '$ThuongHieu.name$': { [Op.like]: `%${escaped}%` } },
             { '$LoaiSanPham.name$': { [Op.like]: `%${escaped}%` } },
         ]
     }
@@ -72,21 +73,11 @@ export const laySanPham = async ({ search = '', page = 1, limit, loai_id, thuong
     const offset = (page - 1) * pageSize
 
     const where = buildFilterWhere({ search, loai_id, thuonghieu_id, gia_min, gia_max })
-
-    const finalWhere = search?.trim() ? {
-        ...where,
-        [Op.or]: [
-            { name: { [Op.like]: `%${search}%` } },
-            { mota: { [Op.like]: `%${search}%` } },
-            { sanpham_id: { [Op.like]: `%${search}%` } },
-            { '$ThuongHieu.name$': { [Op.like]: `%${search}%` } },
-            { '$LoaiSanPham.name$': { [Op.like]: `%${search}%` } },
-        ]
-    } : where
+    // console.log('🔵 WHERE:', JSON.stringify(where, null, 2))
 
     const [sanphams, total] = await Promise.all([
         db.SanPham.findAll({
-            where: finalWhere,
+            where,
             limit: pageSize,
             offset,
             include: sanphamIncludes,
@@ -94,7 +85,7 @@ export const laySanPham = async ({ search = '', page = 1, limit, loai_id, thuong
             subQuery: false, // ✅ cần thiết khi dùng $association.field$
         }),
         db.SanPham.count({
-            where: finalWhere,
+            where,
             include: [
                 { model: db.ThuongHieu, attributes: [] },
                 { model: db.LoaiSanPham, attributes: [] },
