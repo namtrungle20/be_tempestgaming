@@ -10,6 +10,7 @@ import imageRoutes from './routes/images.routes.js';
 import danhMucRouter from './routes/danhmuc.routes.js'
 import thanhtoanRouter from './routes/thanhtoan.routes.js'
 import danhgiaRouter from './routes/danhgia.routes.js'
+import tinNhanRouter from './routes/tinnhan.routes.js'
 import { vaiTroRouter, hinhAnhRouter, chiTietRouter } from './routes/misc.routes.js';
 
 export const AppRoute = (app) => {
@@ -28,4 +29,5 @@ export const AppRoute = (app) => {
     app.use('/api/vaitro', vaiTroRouter);
     app.use('/api/hinhanhsanpham', hinhAnhRouter);
     app.use('/api/chitiet', chiTietRouter);
+    app.use('/api/chat', tinNhanRouter)
 };
