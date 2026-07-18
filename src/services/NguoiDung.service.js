@@ -2,6 +2,7 @@ import db from '../models/index.js'
 import { Op } from 'sequelize'
 import ResponseNguoiDung from '../dtos/responses/ResponseNguoiDung.js'
 import { HangThanhVien, TrangThaiDonHang, TrangThaiTaiKhoan } from '../constants/index.js';
+import argon2 from 'argon2';
 
 
 const NGUONG_HANG = [
@@ -237,4 +238,17 @@ export const xoaNguoiDung = async (id) => {
         { is_revoked: true },
         { where: { nguoidung_id: id } }
     )
+}
+
+export const doiMatKhau = async ({ userId, matKhauCu, matKhauMoi }) => {
+    const user = await db.NguoiDung.findByPk(userId)
+    if (!user) throw { status: 404, message: 'Không tìm thấy người dùng' }
+
+    const isMatch = await argon2.verify(user.password, matKhauCu)
+    if (!isMatch) throw { status: 400, message: 'Mật khẩu hiện tại không đúng' }
+
+    const hashed = await argon2.hash(matKhauMoi)
+    await user.update({ password: hashed })
+
+    return { success: true }
 }

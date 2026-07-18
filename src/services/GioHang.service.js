@@ -9,6 +9,24 @@ import { tinhPhiShip } from '../utils/phiship.until.js';
 import { layThongTinHang } from './NguoiDung.service.js';
 
 
+const GIOI_HAN_COD = 5000000;
+const GIOI_HAN_MOMO = 50000000;
+
+const kiemTraGioiHanMomo = (chiTietGioHang, sanphamIdDangSua, soLuongMoi, giaSanPhamDangSua) => {
+    const chiTietKhac = (chiTietGioHang || []).filter(ct => ct.sanpham_id !== sanphamIdDangSua);
+    const tongTienKhac = chiTietKhac.reduce(
+        (sum, ct) => sum + ct.soluong * parseFloat(ct.SanPham?.gia || 0),
+        0
+    );
+    const tongTienDuKien = tongTienKhac + soLuongMoi * parseFloat(giaSanPhamDangSua || 0);
+
+    if (tongTienDuKien > GIOI_HAN_MOMO) {
+        throw {
+            status: 400,
+            message: `Tổng tiền giỏ hàng không được vượt quá ${GIOI_HAN_MOMO.toLocaleString('vi-VN')}đ (giới hạn thanh toán MoMo)`
+        };
+    }
+};
 
 // USER
 export const layHoacTaoGioHang = async (nguoidung_id) => {
@@ -39,6 +57,13 @@ export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
         where: { giohang_id: gioHang.giohang_id, sanpham_id }
     })
     const soLuongMoi = chiTiet ? chiTiet.soluong + soluong : soluong
+
+    // Tính tổng tiền giỏ hàng sau khi thêm, để chặn sớm nếu vượt mức MoMo
+    const sanPham = await db.SanPham.findByPk(sanpham_id);
+    if (!sanPham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
+
+    kiemTraGioiHanMomo(gioHang.ChiTietGioHang, sanpham_id, soLuongMoi, sanPham.gia);
+
     return await upsertChiTiet({ giohang_id: gioHang.giohang_id, sanpham_id, soluong: soLuongMoi })
 
 };
@@ -46,8 +71,21 @@ export const themSanPham = async (nguoidung_id, sanpham_id, soluong = 1) => {
 // Cập nhật số lượng sản phẩm trong giỏ
 export const capNhatSoLuong = async (nguoidung_id, sanpham_id, soluong) => {
     if (soluong < 0) throw { status: 400, message: 'Số lượng không hợp lệ' };
-    const gioHang = await db.GioHang.findOne({ where: { nguoidung_id } });
+
+    const gioHang = await db.GioHang.findOne({
+        where: { nguoidung_id },
+        include: [{
+            model: db.ChiTietGioHang,
+            as: 'ChiTietGioHang',
+            include: [{ model: db.SanPham, as: 'SanPham' }]
+        }]
+    });
     if (!gioHang) throw { status: 404, message: 'Giỏ hàng không tồn tại' }
+    const sanPham = await db.SanPham.findByPk(sanpham_id);
+    if (!sanPham) throw { status: 404, message: 'Sản phẩm không tồn tại' };
+
+    kiemTraGioiHanMomo(gioHang.ChiTietGioHang, sanpham_id, soluong, sanPham.gia);
+
     return await upsertChiTiet({ giohang_id: gioHang.giohang_id, sanpham_id, soluong })
 
 };
@@ -91,11 +129,11 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
 
     const tongtien = tienSP + phiVanChuyen;
 
-    const COD_MAX_AMOUNT = 5000000;
-    if (phuongthucthanhtoan === PhuongThucThanhToan.COD && tongtien > COD_MAX_AMOUNT) {
+
+    if (phuongthucthanhtoan === PhuongThucThanhToan.COD && tongtien > GIOI_HAN_COD) {
         throw {
             status: 400,
-            message: `Đơn hàng trên ${COD_MAX_AMOUNT.toLocaleString('vi-VN')}đ chỉ hỗ trợ thanh toán qua MoMo để đảm bảo an toàn giao dịch.`
+            message: `Đơn hàng trên ${GIOI_HAN_COD.toLocaleString('vi-VN')}đ chỉ hỗ trợ thanh toán qua MoMo để đảm bảo an toàn giao dịch.`
         };
     }
 
@@ -139,7 +177,7 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
 
     if (phuongthucthanhtoan === PhuongThucThanhToan.MOMO) {
         const sotien = Number(tongtien);
-        if (sotien > 50000000) throw { status: 400, message: 'Số tiền vượt quá giới hạn MoMo' };
+        if (sotien > GIOI_HAN_MOMO) throw { status: 400, message: 'Số tiền vượt quá giới hạn MoMo' };
         const { momoResult } = await createMomoPayment({
             donhang_id: donHang.donhang_id,
             sotien,

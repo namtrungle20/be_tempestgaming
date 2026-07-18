@@ -22,6 +22,11 @@ export const guiTinNhan = async ({ noidung, nguoidungId, guestId, requesterId, r
 
     if (isAdmin) {
         if (!nguoidungId && !guestId) throw { status: 400, message: 'Thiếu thông tin hội thoại cần trả lời' }
+
+        if (nguoidungId) {
+            const nguoidung = await db.NguoiDung.findByPk(nguoidungId)
+            if (!nguoidung) throw { status: 404, message: 'Người dùng không tồn tại hoặc đã bị xoá' }
+        }
         return db.TinNhan.create({
             nguoidung_id: nguoidungId || null,
             guest_id: guestId || null,
@@ -48,18 +53,47 @@ export const guiTinNhan = async ({ noidung, nguoidungId, guestId, requesterId, r
     })
 }
 
-export const layDanhSachHoiThoai = async () => {
+export const layDanhSachHoiThoai = async (limit = 20, offset = 0) => {
     return db.sequelize.query(`
         SELECT tn.*, nd.name, nd.sdt
         FROM TinNhans tn
         INNER JOIN (
             SELECT COALESCE(nguoidung_id, guest_id) AS conv_key, MAX(created_at) AS max_created_at
             FROM TinNhans
-            GROUP BY conv_key
+            GROUP BY COALESCE(nguoidung_id, guest_id)
         ) latest
             ON COALESCE(tn.nguoidung_id, tn.guest_id) = latest.conv_key
             AND tn.created_at = latest.max_created_at
-        LEFT JOIN nguoidung nd ON nd.nguoidung_id = tn.nguoidung_id
+        LEFT JOIN NguoiDungs nd ON nd.nguoidung_id = tn.nguoidung_id
         ORDER BY tn.created_at DESC
-    `, { type: db.sequelize.QueryTypes.SELECT })
+    `,
+        {
+            replacements: { limit, offset },
+            type: db.sequelize.QueryTypes.SELECT
+        })
+}
+
+export const xoaHoiThoai = async ({ nguoidungId, guestId, requesterVaiTro }) => {
+    if (requesterVaiTro !== VaiTroNguoiDung.ADMIN) {
+        throw { status: 403, message: 'Chỉ admin mới có quyền xoá hội thoại' }
+    }
+    if (!nguoidungId && !guestId) {
+        throw { status: 400, message: 'Thiếu thông tin hội thoại cần xoá' }
+    }
+
+    const where = nguoidungId ? { nguoidung_id: nguoidungId } : { guest_id: guestId }
+    const soLuongXoa = await db.TinNhan.destroy({ where })
+
+    return { soLuongXoa }
+}
+
+export const gopGuestVaoUser = async ({ guestId, userId }) => {
+    if (!guestId || !userId) return { merged: 0 }
+
+    const [affectedCount] = await db.TinNhan.update(
+        { nguoidung_id: userId, guest_id: null },
+        { where: { guest_id: guestId } }
+    )
+
+    return { merged: affectedCount }
 }

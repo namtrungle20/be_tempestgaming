@@ -107,6 +107,10 @@ io.on('connection', (socket) => {
     socket.join('admin-room')
   })
 
+  socket.on('join-guest', (guestId) => {
+    socket.join(`guest-${guestId}`)
+  })
+
   socket.on('join-product', (sanpham_id) => {
     socket.join(`product-${sanpham_id}`)
   })

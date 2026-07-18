@@ -14,6 +14,8 @@ router.post('/chi-tiet', adminOrUser, asyncHandler(NguoiDungController.postNguoi
 router.put('/update/:id', adminOrUser, asyncHandler(NguoiDungController.updateNguoiDung));
 router.delete('/delete/:id', adminOnly, asyncHandler(NguoiDungController.deleteNguoiDung));
 
+router.put('/doi-mat-khau', adminOrUser, asyncHandler(NguoiDungController.doiMatKhau));
+
 // RANK
 router.get('/rank', adminOrUser, asyncHandler(NguoiDungController.getHangThanhVien));
 router.post('/rank/update', adminOrUser, asyncHandler(NguoiDungController.updateHang));

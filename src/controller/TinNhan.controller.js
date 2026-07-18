@@ -1,9 +1,10 @@
 import * as chatService from '../services/TinNhan.service.js'
 import { io } from '../server.js'
+import { VaiTroNguoiDung } from '../constants/index.js'
 
 export const getLichSuChat = async (req, res) => {
     const { id } = req.params
-    const isGuest = !req.user
+    const isGuest = req.query.isGuest === 'true'
 
     const messages = await chatService.layLichSuChat({
         nguoidungId: isGuest ? null : id,
@@ -16,7 +17,7 @@ export const getLichSuChat = async (req, res) => {
 
 export const postGuiTinNhan = async (req, res) => {
     const { noidung, nguoidung_id, guest_id } = req.body
-    console.log('BODY:', req.body)
+    // console.log('BODY:', req.body)
 
     const tinNhan = await chatService.guiTinNhan({
         noidung,
@@ -34,6 +35,35 @@ export const postGuiTinNhan = async (req, res) => {
 }
 
 export const getDanhSachHoiThoai = async (req, res) => {
-    const conversations = await chatService.layDanhSachHoiThoai()
+    const limit = parseInt(req.query.limit) || 20
+    const offset = parseInt(req.query.offset) || 0
+
+    const conversations = await chatService.layDanhSachHoiThoai(limit, offset)
     res.status(200).json({ success: true, data: conversations })
+}
+
+export const deleteHoiThoai = async (req, res) => {
+    const { id } = req.params
+    const isGuest = req.query.isGuest === 'true'
+
+    const result = await chatService.xoaHoiThoai({
+        nguoidungId: isGuest ? null : id,
+        guestId: isGuest ? id : null,
+        requesterVaiTro: req.user?.vaitro,
+    })
+
+    res.status(200).json({ success: true, data: result })
+}
+
+export const postMergeGuest = async (req, res) => {
+    if (req.user.vaitro === VaiTroNguoiDung.ADMIN) {
+        return res.status(200).json({ success: true, data: { merged: 0 } })
+    }
+
+    const { guest_id } = req.body
+    const result = await chatService.gopGuestVaoUser({
+        guestId: guest_id,
+        userId: req.user.nguoidung_id,
+    })
+    res.status(200).json({ success: true, data: result })
 }

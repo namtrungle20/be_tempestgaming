@@ -71,3 +71,13 @@ export const deleteNguoiDung = async (req, res) => {
     await NguoiDungService.xoaNguoiDung(req.body.id)
     return res.status(200).json({ success: true, message: 'Xóa người dùng thành công' })
 }
+
+export const doiMatKhau = async (req, res) => {
+    const { matKhauCu, matKhauMoi } = req.body
+    const result = await NguoiDungService.doiMatKhau({
+        userId: req.user.nguoidung_id,
+        matKhauCu,
+        matKhauMoi,
+    })
+    res.status(200).json({ success: true, data: result })
+}
