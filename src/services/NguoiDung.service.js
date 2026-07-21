@@ -59,7 +59,7 @@ export const layTatCaNguoiDung = async ({ filter = {}, pagination = {}, sort = {
 
     const { count, rows } = await db.NguoiDung.findAndCountAll({
         where,
-        attributes: ['nguoidung_id', 'name', 'email', 'sdt', 'vaitro', 'trangthai', 'ngayvao', 'diachi', 'avatar'],
+        attributes: ['nguoidung_id', 'name', 'email', 'sdt', 'vaitro', 'trangthai', 'ngayvao', 'diachi', 'avatar', 'hang_thanh_vien'],
         limit, offset,
         order: [[orderField, orderDir]],
         raw: true
@@ -73,7 +73,7 @@ export const layNguoiDungTheoId = async (id) => {
             nguoidung_id: id,
             trangthai: { [Op.ne]: TrangThaiTaiKhoan.DA_XOA }
         },
-        attributes: ['nguoidung_id', 'name', 'email', 'sdt', 'diachi', 'avatar', 'vaitro', 'trangthai', 'ngayvao'],
+        attributes: ['nguoidung_id', 'name', 'email', 'sdt', 'diachi', 'avatar', 'vaitro', 'trangthai', 'ngayvao', 'hang_thanh_vien'],
         raw: true
     })
     if (!user) throw { status: 404, message: 'Không tìm thấy người dùng' }
@@ -91,7 +91,7 @@ export const capNhatNguoiDung = async (id, { name, email, sdt, diachi, vaitro, t
     }
 
     if (name !== undefined) user.name = name
-    if (email !== undefined) user.email = email
+    if (email !== undefined) user.email = email?.trim() || null
     if (sdt !== undefined) user.sdt = sdt
     if (diachi !== undefined) user.diachi = diachi
     if (vaitro !== undefined) user.vaitro = vaitro

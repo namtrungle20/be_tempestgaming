@@ -7,6 +7,7 @@ import { createMomoPayment } from './ThanhToan.service.js';
 import { upsertChiTiet, capNhatTongTienGioHang } from './ChiTietGioHang.service.js'
 import { tinhPhiShip } from '../utils/phiship.until.js';
 import { layThongTinHang } from './NguoiDung.service.js';
+import { layPhanTramGiamTheoHang } from './UuDai.service.js';
 
 
 const GIOI_HAN_COD = 5000000;
@@ -127,13 +128,22 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
     const thongTinHang = layThongTinHang(user.hang_thanh_vien);
     const phiVanChuyen = tinhPhiShip(thongTinHang.giamShip);
 
-    const tongtien = tienSP + phiVanChuyen;
+    const phanTramGiam = await layPhanTramGiamTheoHang(user.hang_thanh_vien);
+    const soTienGiam = Math.round(tienSP * (phanTramGiam / 100));
 
+    const tongtien = tienSP - soTienGiam + phiVanChuyen;
 
     if (phuongthucthanhtoan === PhuongThucThanhToan.COD && tongtien > GIOI_HAN_COD) {
         throw {
             status: 400,
             message: `Đơn hàng trên ${GIOI_HAN_COD.toLocaleString('vi-VN')}đ chỉ hỗ trợ thanh toán qua MoMo để đảm bảo an toàn giao dịch.`
+        };
+    }
+
+    if (phuongthucthanhtoan === PhuongThucThanhToan.MOMO && tongtien > GIOI_HAN_MOMO) {
+        throw {
+            status: 400,
+            message: `Tổng tiền đơn hàng vượt quá ${GIOI_HAN_MOMO.toLocaleString('vi-VN')}đ (giới hạn thanh toán MoMo)`
         };
     }
 
@@ -143,6 +153,7 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
         donHang = await db.DonHang.create({
             nguoidung_id, tongtien,
             phi_van_chuyen: phiVanChuyen,
+            giam_gia: soTienGiam,
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
             diachi, sdt, phuongthucthanhtoan
         }, { transaction });
