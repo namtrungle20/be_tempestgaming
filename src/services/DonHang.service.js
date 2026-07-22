@@ -1,6 +1,6 @@
 import { Op, fn, col, literal } from 'sequelize'
 import db from '../models/index.js'
-import { TrangThaiDonHang } from '../constants/index.js'
+import { HuyBoi, LyDoHuyDonHang, TrangThaiDonHang, VaiTroNguoiDung } from '../constants/index.js'
 import { tinhVaCapNhatHang } from './NguoiDung.service.js'
 import { io } from '../server.js'
 
@@ -46,7 +46,7 @@ export const layDonHangs = async ({ search = '', page = 1, trangthai, created_at
 
 export const layDonHangTheoId = async (id) => {
     const donhang = await db.DonHang.findByPk(id, {
-        attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'created_at', 'updated_at', 'phi_van_chuyen', 'giam_gia'],
+        attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'created_at', 'updated_at', 'phi_van_chuyen', 'giam_gia', 'ly_do_huy', 'ghi_chu_huy', 'huy_boi'],
         include: [
             {
                 model: db.NguoiDung,
@@ -104,7 +104,7 @@ export const layDonHangTheoNguoiDung = async (nguoidung_id, { page = 1, trangtha
     return { data, total, currentPage: parseInt(page, 10), totalPages: Math.ceil(total / PAGE_SIZE) };
 };
 
-export const xoaDonHang = async (id, nguoidung_id, isAdmin = false) => {
+export const xoaDonHang = async (id, nguoidung_id, isAdmin = false, { ly_do_huy, ghi_chu_huy } = {}) => {
     const donhang = await db.DonHang.findByPk(id, {
         include: [{ model: db.ChiTietDonHang, as: 'ChiTietDonHangs' }]
     });
@@ -117,10 +117,18 @@ export const xoaDonHang = async (id, nguoidung_id, isAdmin = false) => {
     if (donhang.trangthai !== TrangThaiDonHang.CHO_XAC_NHAN) {
         throw { status: 400, message: 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận' };
     }
+    if (ly_do_huy !== undefined && !Object.values(LyDoHuyDonHang).includes(ly_do_huy)) {
+        throw { status: 400, message: 'Lý do hủy không hợp lệ' };
+    }
 
     const transaction = await db.sequelize.transaction();
     try {
-        await donhang.update({ trangthai: TrangThaiDonHang.DA_HUY }, { transaction });
+        await donhang.update({
+            trangthai: TrangThaiDonHang.DA_HUY,
+            ly_do_huy: ly_do_huy ?? LyDoHuyDonHang.KHAC,
+            ghi_chu_huy: ghi_chu_huy || null,
+            huy_boi: isAdmin ? HuyBoi.ADMIN : HuyBoi.KHACH_HANG,
+        }, { transaction });
 
         // Hoàn lại số lượng tồn kho
         for (const item of donhang.ChiTietDonHangs) {
@@ -144,6 +152,10 @@ export const capNhatDonHang = async (id, data) => {
     const oldStatus = donhang.trangthai;
     const newStatus = data.trangthai;
     let hangMoi = null;
+
+    if (newStatus === TrangThaiDonHang.DA_HUY && oldStatus !== TrangThaiDonHang.DA_HUY && data.huy_boi === undefined) {
+        data.huy_boi = HuyBoi.ADMIN;
+    }
 
     const transaction = await db.sequelize.transaction();
     try {
@@ -258,3 +270,15 @@ export const tongDoanhThu = async () => {
     })
     return Number(result?.total || 0)
 }
+
+export const huyDonHang = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { ly_do_huy, ghi_chu_huy } = req.body;
+        const isAdmin = req.user.vaitro === VaiTroNguoiDung.ADMIN;
+        await xoaDonHang(id, req.user.nguoidung_id, isAdmin, { ly_do_huy, ghi_chu_huy });
+        res.json({ success: true, message: 'Hủy đơn hàng thành công' });
+    } catch (error) {
+        next(error);
+    }
+};

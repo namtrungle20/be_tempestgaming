@@ -1,8 +1,9 @@
 import axios from 'axios';
 import db from '../models/index.js';
 import { buildMomoPaymentBody, verifyMomoSignature, MOMO_ENDPOINT } from '../utils/momo.util.js';
-import { TrangThaiThanhToan, PhuongThucThanhToan, TrangThaiDonHang } from '../constants/index.js';
+import { TrangThaiThanhToan, PhuongThucThanhToan, TrangThaiDonHang, LyDoHuyDonHang, HuyBoi } from '../constants/index.js';
 import { tinhVaCapNhatHang } from './NguoiDung.service.js';
+import { capNhatDonHang } from './DonHang.service.js';
 import { io } from "../server.js"
 
 const callMomoAPI = async (body) => {
@@ -99,8 +100,24 @@ export const processMomoIPN = async (ipnPayload) => {
                 nguoidung_id: donHang.nguoidung_id,
             })
         }
+    } else {
+        // ✅ MoMo báo hủy/thất bại → hủy đơn hàng tương ứng, hoàn lại tồn kho
+        const donHang = await db.DonHang.findByPk(thanhtoan.donhang_id);
+        if (donHang && donHang.trangthai === TrangThaiDonHang.CHO_XAC_NHAN) {
+            await capNhatDonHang(donHang.donhang_id, {
+                trangthai: TrangThaiDonHang.DA_HUY,
+                ly_do_huy: LyDoHuyDonHang.THANH_TOAN_THAT_BAI,
+                ghi_chu_huy: message || null,
+                huy_boi: HuyBoi.HE_THONG,
+            });
+            if (donHang.nguoidung_id) {
+                io.to(`user-${donHang.nguoidung_id}`).emit('order-status-updated', {
+                    donhang_id: donHang.donhang_id,
+                    trangthai: TrangThaiDonHang.DA_HUY,
+                })
+            }
+        }
     }
-
 
     return { isSuccess, orderId, transId, amount, message };
 };

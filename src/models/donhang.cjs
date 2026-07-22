@@ -50,6 +50,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0
     },
+    ly_do_huy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ghi_chu_huy: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    huy_boi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     sdt: DataTypes.STRING,
     diachi: DataTypes.STRING,
     created_at: DataTypes.DATE,

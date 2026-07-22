@@ -8,7 +8,7 @@ const router = Router()
 const adminOnly = requestVaiTro([VaiTroNguoiDung.ADMIN])
 const adminOrUser = requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER])
 
-router.get('/', adminOnly, asyncHandler(UuDaiController.getDanhSachUuDai))
+router.get('/', adminOrUser, asyncHandler(UuDaiController.getDanhSachUuDai))
 router.get('/me', adminOrUser, asyncHandler(UuDaiController.getUuDaiCuaToi))
 router.put('/:hang', adminOnly, asyncHandler(UuDaiController.putCapNhatUuDai))
 

@@ -19,7 +19,8 @@ export const getMyDonHangs = async (req, res) => {
 
 export const xoaDonHang = async (req, res) => {
     const laAdmin = req.user.vaitro === VaiTroNguoiDung.ADMIN
-    await DonHangService.xoaDonHang(req.params.id, req.user.nguoidung_id, laAdmin)
+    const { ly_do_huy, ghi_chu_huy } = req.body
+    await DonHangService.xoaDonHang(req.params.id, req.user.nguoidung_id, laAdmin, { ly_do_huy, ghi_chu_huy })
     res.json({ success: true, message: 'Huỷ đơn hàng thành công' })
 }
 
