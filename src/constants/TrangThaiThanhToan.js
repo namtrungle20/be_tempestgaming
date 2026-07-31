@@ -2,7 +2,6 @@ export const PhuongThucThanhToan = {
     COD: 0,
     MOMO: 1,
     VNPAY: 2,
-    BANK_TRANSFER: 3,
 };
 
 export const TrangThaiThanhToan = {

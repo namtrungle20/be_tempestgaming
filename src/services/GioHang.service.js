@@ -4,6 +4,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { TrangThaiDonHang } from '../constants/index.js'
 import { PhuongThucThanhToan, TrangThaiThanhToan } from '../constants/index.js';
 import { createMomoPayment } from './ThanhToan.service.js';
+import { createVnpayPayment } from './VNPay.service.js';
 import { upsertChiTiet, capNhatTongTienGioHang } from './ChiTietGioHang.service.js'
 import { tinhPhiShip } from '../utils/phiship.until.js';
 import { layThongTinHang } from './NguoiDung.service.js';
@@ -12,6 +13,7 @@ import { layPhanTramGiamTheoHang } from './UuDai.service.js';
 
 const GIOI_HAN_COD = 5000000;
 const GIOI_HAN_MOMO = 50000000;
+const GIOI_HAN_VNPAY = 50000000;
 
 const kiemTraGioiHanMomo = (chiTietGioHang, sanphamIdDangSua, soLuongMoi, giaSanPhamDangSua) => {
     const chiTietKhac = (chiTietGioHang || []).filter(ct => ct.sanpham_id !== sanphamIdDangSua);
@@ -147,6 +149,13 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
         };
     }
 
+    if (phuongthucthanhtoan === PhuongThucThanhToan.VNPAY && tongtien > GIOI_HAN_VNPAY) {
+        throw {
+            status: 400,
+            message: `Tổng tiền đơn hàng vượt quá ${GIOI_HAN_VNPAY.toLocaleString('vi-VN')}đ (giới hạn thanh toán VNPay)`
+        };
+    }
+
     const transaction = await db.sequelize.transaction();
     let donHang;
     try {
@@ -195,6 +204,17 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
             orderInfo: `Thanh toan don hang ${donHang.donhang_id}`,
         });
         return { donHang, payUrl: momoResult.payUrl };
+    }
+
+    if (phuongthucthanhtoan === PhuongThucThanhToan.VNPAY) {
+        const sotien = Number(tongtien);
+        if (sotien > GIOI_HAN_VNPAY) throw { status: 400, message: 'Số tiền vượt quá giới hạn VNPay' };
+        const { paymentUrl } = await createVnpayPayment({
+            donhang_id: donHang.donhang_id,
+            sotien,
+            orderInfo: `Thanh toan don hang ${donHang.donhang_id}`,
+        });
+        return { donHang, payUrl: paymentUrl };
     }
 
     return { donHang };

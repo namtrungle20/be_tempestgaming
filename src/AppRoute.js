@@ -17,7 +17,7 @@ import momoMockRouter from './routes/momomock.routes.js'
 
 export const AppRoute = (app) => {
     app.use(cookieParser());
-    app.use('/api/thanhtoan', thanhtoanRouter)
+    app.use('/api/payment', thanhtoanRouter);
     app.use('/api/momo-mock', momoMockRouter)
     app.use('/api/auth', authRoutes);
     app.use('/api/nguoidung', nguoiDungRoutes);

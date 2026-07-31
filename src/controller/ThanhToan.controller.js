@@ -4,8 +4,11 @@ import {
     verifyMomoReturn,
     getThanhToanById,
 } from '../services/ThanhToan.service.js';
+import { createVnpayPayment, processVnpayIPN, verifyVnpayReturn } from '../services/VNPay.service.js';
 import CreateThanhToanRequest from '../dtos/requests/ThanhToan/CreateThanhToanRequest.js';
 import { CreateThanhToanResponse, ChiTietThanhToanResponse } from '../dtos/responses/ResponseThanhToan.js';
+import { parseRawQuery } from '../utils/vnpay.util.js';
+import { PhuongThucThanhToan } from '../constants/index.js';
 
 // ─── POST /api/payment/momo/create ───────────────────────────────────────────
 export const createPayment = async (req, res) => {
@@ -19,7 +22,10 @@ export const createPayment = async (req, res) => {
     return res.status(201).json({
         success: true,
         message: 'Tạo thanh toán thành công',
-        data: CreateThanhToanResponse(thanhtoan, momoResult),
+        data: CreateThanhToanResponse(thanhtoan, momoResult.payUrl, {
+            deeplink: momoResult.deeplink,
+            qrCodeUrl: momoResult.qrCodeUrl,
+        }),
     });
 };
 
@@ -49,6 +55,46 @@ export const momoReturn = async (req, res) => {
     });
 
     return res.redirect(`${frontendUrl}/payment/result?${query}`);
+};
+
+
+export const createVnpay = async (req, res) => {
+    const { donhang_id, sotien, orderInfo } = req.body;
+
+    const { valid, message } = CreateThanhToanRequest({ donhang_id, sotien, phuongthucthanhtoan: PhuongThucThanhToan.VNPAY });
+    if (!valid) return res.status(400).json({ success: false, message });
+
+    const ipAddr = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+    const { thanhtoan, paymentUrl } = await createVnpayPayment({ donhang_id, sotien, orderInfo, ipAddr });
+
+    return res.status(201).json({
+        success: true,
+        message: 'Tạo thanh toán thành công',
+        data: CreateThanhToanResponse(thanhtoan, paymentUrl),
+    });
+};
+
+export const vnpayIPN = async (req, res) => {
+    const query = parseRawQuery(req);
+    console.log('[VNPay IPN] Query:', query);
+    const result = await processVnpayIPN(query);
+    return res.status(200).json(result);
+};
+
+export const vnpayReturn = async (req, res) => {
+    const query = parseRawQuery(req);
+    console.log('[VNPay Return] Query:', query);
+    const result = verifyVnpayReturn(query);
+    const frontendUrl = process.env.FRONTEND_URL;
+    const queryStr = new URLSearchParams({
+        orderId: result.orderId,
+        isSuccess: result.isSuccess,
+        resultCode: result.resultCode,
+        message: result.message,
+        amount: result.amount,
+    });
+
+    return res.redirect(`${frontendUrl}/payment/result?${queryStr}`);
 };
 
 export const getPaymentDetail = async (req, res) => {

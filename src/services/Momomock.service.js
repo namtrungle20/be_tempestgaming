@@ -70,10 +70,19 @@ export const sendIpnCallback = async (payload) => {
 // Build query string để redirect trình duyệt về redirectUrl, giống MoMo thật
 export const buildRedirectUrl = (payload) => {
     const query = new URLSearchParams({
-        orderId: payload.orderId,
+        partnerCode: payload.partnerCode || '',
+        orderId: payload.orderId || '',
+        requestId: payload.requestId || '',
+        amount: payload.amount || 0,
+        orderInfo: payload.orderInfo || '',
+        orderType: payload.orderType || '',
+        transId: payload.transId || '',
         resultCode: payload.resultCode,
-        message: payload.message,
-        amount: payload.amount,
+        message: payload.message || '',
+        payType: payload.payType || '',
+        responseTime: payload.responseTime || '',
+        extraData: payload.extraData || '',
+        signature: payload.signature || '',
     }).toString();
     return `${MOMO_REDIRECT_URL}?${query}`;
 }

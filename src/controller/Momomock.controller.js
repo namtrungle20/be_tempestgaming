@@ -42,7 +42,7 @@ export const renderPayPage = (req, res) => {
     <div class="row"><span>Số tiền</span><b>${Number(amount).toLocaleString('vi-VN')}đ</b></div>
     <div class="row"><span>Nội dung</span><b>${orderInfo || 'Thanh toan don hang'}</b></div>
 
-    <form method="POST" action="/momo-mock/confirm">
+    <form method="POST" action="/api/momo-mock/confirm">
       <input type="hidden" name="orderId" value="${orderId}" />
       <input type="hidden" name="amount" value="${amount}" />
       <input type="hidden" name="requestId" value="${requestId || orderId}" />

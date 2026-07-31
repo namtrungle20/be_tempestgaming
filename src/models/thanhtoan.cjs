@@ -69,6 +69,27 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    vnp_txn_ref: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
+    vnp_transaction_no: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    vnp_response_code: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    vnp_bank_code: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    vnp_pay_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   }, {
     sequelize,
     modelName: 'ThanhToan',

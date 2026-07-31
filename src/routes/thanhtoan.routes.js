@@ -5,6 +5,9 @@ import {
     createPayment,
     momoIPN,
     momoReturn,
+    createVnpay,
+    vnpayIPN,
+    vnpayReturn,
     getPaymentDetail,
 } from '../controller/ThanhToan.controller.js';
 import { VaiTroNguoiDung } from '../constants/index.js';
@@ -14,13 +17,17 @@ import validate from '../middlewares/validate.middleware.js';
 const router = Router();
 const userAndAdmin = requestVaiTro([VaiTroNguoiDung.USER, VaiTroNguoiDung.ADMIN]);
 
+// ─── MoMo ──────────────────────────────────────────────
 router.post('/create', userAndAdmin, validate(TaoThanhToanRequest), asyncHandler(createPayment));
-
 router.post('/ipn', asyncHandler(momoIPN));
-
 router.get('/return', asyncHandler(momoReturn));
 
-// Lấy chi tiết thanh toán — user đã login
+// ─── VNPay ──────────────────────────────────────────────
+router.post('/vnpay/create', userAndAdmin, validate(TaoThanhToanRequest), asyncHandler(createVnpay));
+router.get('/vnpay/ipn', asyncHandler(vnpayIPN));
+router.get('/vnpay/return', asyncHandler(vnpayReturn));
+
+// Lấy chi tiết thanh toán
 router.get('/:id', userAndAdmin, asyncHandler(getPaymentDetail));
 
 export default router;
