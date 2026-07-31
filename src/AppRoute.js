@@ -13,10 +13,12 @@ import danhgiaRouter from './routes/danhgia.routes.js'
 import tinNhanRouter from './routes/tinnhan.routes.js'
 import uuDaiHangRouter from './routes/uudai.routes.js'
 import { vaiTroRouter, hinhAnhRouter, chiTietRouter } from './routes/misc.routes.js';
+import momoMockRouter from './routes/momomock.routes.js'
 
 export const AppRoute = (app) => {
     app.use(cookieParser());
     app.use('/api/thanhtoan', thanhtoanRouter)
+    app.use('/api/momo-mock', momoMockRouter)
     app.use('/api/auth', authRoutes);
     app.use('/api/nguoidung', nguoiDungRoutes);
     app.use('/api/danhmuc', danhMucRouter);

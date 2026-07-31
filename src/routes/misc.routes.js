@@ -9,6 +9,7 @@ import ThemHinhAnhSanPhamRequest from '../dtos/requests/HinhAnhSanPham/ThemHinhA
 import { VaiTroNguoiDung } from '../constants/index.js';
 import { toCloudinaryArray, uploadCloudinaryArray } from '../middlewares/upload.middleware.js';
 
+
 const adminOnly = requestVaiTro([VaiTroNguoiDung.ADMIN]);
 
 // ─── Vai Trò ─────────────────────────────────────────────────────────────────
@@ -55,3 +56,5 @@ chiTietRouter.post('/bulk', adminOnly, asyncHandler(ChiTietSanPhamController.the
 chiTietRouter.put('/:id', adminOnly, asyncHandler(ChiTietSanPhamController.capNhatChiTietSanPham));
 chiTietRouter.delete('/all', adminOnly, asyncHandler(ChiTietSanPhamController.xoaHetChiTietSanPham));
 chiTietRouter.delete('/:id', adminOnly, asyncHandler(ChiTietSanPhamController.xoaChiTietSanPham));
+
+
