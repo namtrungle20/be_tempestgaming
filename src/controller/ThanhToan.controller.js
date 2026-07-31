@@ -25,12 +25,19 @@ export const createPayment = async (req, res) => {
 
 
 export const momoIPN = async (req, res) => {
-    await processMomoIPN(req.body);
-    return res.status(200).json({ message: 'ok' });
+    console.log('[IPN] Nhận được:', JSON.stringify(req.body));
+    try {
+        await processMomoIPN(req.body);
+        return res.status(200).json({ message: 'ok' });
+    } catch (error) {
+        console.error('[IPN] Lỗi:', error);
+        return res.status(200).json({ message: 'received' });
+    }
 };
 
 
 export const momoReturn = async (req, res) => {
+    console.log('[Return] Query params:', req.query);
     const result = verifyMomoReturn(req.query);
     const frontendUrl = process.env.FRONTEND_URL;
     const query = new URLSearchParams({

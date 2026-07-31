@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0
     },
+    // name: {
+    //   type: DataTypes.STRING,
+    //   allowNull: false,
+    // },
     giam_gia: {
       type: DataTypes.DECIMAL(12, 0),
       allowNull: false,

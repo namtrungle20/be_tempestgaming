@@ -1,18 +1,22 @@
 import axios from 'axios';
 import db from '../models/index.js';
-import { buildMomoPaymentBody, verifyMomoSignature, MOMO_ENDPOINT } from '../utils/momo.util.js';
+import { buildMomoPaymentBody, verifyMomoSignature, MOMO_ENDPOINT, MOMO_QUERY_ENDPOINT } from '../utils/momo.util.js';
 import { TrangThaiThanhToan, PhuongThucThanhToan, TrangThaiDonHang, LyDoHuyDonHang, HuyBoi } from '../constants/index.js';
 import { tinhVaCapNhatHang } from './NguoiDung.service.js';
 import { capNhatDonHang } from './DonHang.service.js';
 import { io } from "../server.js"
 
 const callMomoAPI = async (body) => {
+    console.log('[MoMo] Bắt đầu gọi API lúc:', new Date().toISOString());
     try {
         const { data } = await axios.post(MOMO_ENDPOINT, body, {
             headers: { 'Content-Type': 'application/json' },
+            timeout: 15000
         });
+        console.log('[MoMo] Nhận response lúc:', new Date().toISOString(), data);
         return data;
     } catch (error) {
+        console.error('[MoMo] Lỗi gọi API:', error.code, error.message);
         throw error;
     }
 };
@@ -105,6 +109,7 @@ export const processMomoIPN = async (ipnPayload) => {
         const donHang = await db.DonHang.findByPk(thanhtoan.donhang_id);
         if (donHang && donHang.trangthai === TrangThaiDonHang.CHO_XAC_NHAN) {
             await capNhatDonHang(donHang.donhang_id, {
+                // name: donHang.name,
                 trangthai: TrangThaiDonHang.DA_HUY,
                 ly_do_huy: LyDoHuyDonHang.THANH_TOAN_THAT_BAI,
                 ghi_chu_huy: message || null,
@@ -120,6 +125,16 @@ export const processMomoIPN = async (ipnPayload) => {
     }
 
     return { isSuccess, orderId, transId, amount, message };
+};
+
+export const queryMomoTransactionStatus = async (thanhtoan_id) => {
+    const thanhtoan = await db.ThanhToan.findByPk(thanhtoan_id);
+    const body = buildMomoQueryBody({
+        orderId: thanhtoan.momo_order_id,
+        requestId: thanhtoan.momo_request_id,
+    });
+    const { data } = await axios.post(MOMO_QUERY_ENDPOINT, body, { timeout: 15000 }); // MOMO_QUERY_ENDPOINT: endpoint riêng cho query, thêm vào .env
+    return data;
 };
 
 /**

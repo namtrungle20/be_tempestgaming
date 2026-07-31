@@ -7,6 +7,7 @@ import cors from 'cors'
 import http from 'http'
 import { Server } from 'socket.io'
 import { AppRoute } from './AppRoute.js'
+import '../src/jobs/reconcileMomoPayments.job.js';
 import path from 'path';
 
 

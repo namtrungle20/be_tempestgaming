@@ -7,9 +7,12 @@ const {
     MOMO_REDIRECT_URL,
     MOMO_IPN_URL,
     MOMO_ENDPOINT,
+    MOMO_QUERY_ENDPOINT,
+    MOMO_PARTNER_NAME,
+    MOMO_STORE_ID
 } = process.env;
 
-export { MOMO_ENDPOINT };
+export { MOMO_ENDPOINT, MOMO_QUERY_ENDPOINT };
 
 // ─── Signature ────────────────────────────────────────────────────────────────
 
@@ -60,6 +63,8 @@ export const buildMomoPaymentBody = ({ orderId, amount, orderInfo, requestType =
 
     return {
         partnerCode: MOMO_PARTNER_CODE,
+        partnerName: MOMO_PARTNER_NAME,
+        // storeId: MOMO_STORE_ID,
         accessKey: MOMO_ACCESS_KEY,
         requestId,
         amount,
@@ -72,6 +77,17 @@ export const buildMomoPaymentBody = ({ orderId, amount, orderInfo, requestType =
         autoCapture: true,
         lang: 'vi',
         signature,
+    };
+};
+export const buildMomoQueryBody = ({ orderId, requestId }) => {
+    const rawSignature = `accessKey=${MOMO_ACCESS_KEY}&orderId=${orderId}&partnerCode=${MOMO_PARTNER_CODE}&requestId=${requestId}`;
+    const signature = crypto.createHmac('sha256', MOMO_SECRET_KEY).update(rawSignature).digest('hex');
+    return {
+        partnerCode: MOMO_PARTNER_CODE,
+        requestId,
+        orderId,
+        signature,
+        lang: 'vi',
     };
 };
 
