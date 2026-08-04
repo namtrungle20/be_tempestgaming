@@ -133,7 +133,6 @@ export const processMomoIPN = async (ipnPayload) => {
         const donHang = await db.DonHang.findByPk(thanhtoan.donhang_id);
         if (donHang && donHang.trangthai === TrangThaiDonHang.CHO_XAC_NHAN) {
             await capNhatDonHang(donHang.donhang_id, {
-                // name: donHang.name,
                 trangthai: TrangThaiDonHang.DA_HUY,
                 ly_do_huy: LyDoHuyDonHang.THANH_TOAN_THAT_BAI,
                 ghi_chu_huy: message || null,

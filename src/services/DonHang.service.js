@@ -18,7 +18,7 @@ export const layDonHangs = async ({ search = '', page = 1, trangthai, created_at
             { sdt: { [Op.like]: `%${searchTerm}%` } },
             { '$NguoiDung.name$': { [Op.like]: `%${searchTerm}%` } },
             { '$NguoiDung.email$': { [Op.like]: `%${searchTerm}%` } },
-            // { '$NguoiDung.sdt$': { [Op.like]: `%${searchTerm}%` } },
+            { '$DonHang.donhang_id$': { [Op.like]: `%${searchTerm}%` } },
         ]
     }
 

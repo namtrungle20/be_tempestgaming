@@ -1,8 +1,7 @@
 export const TrangThaiDonHang = {
     CHO_XAC_NHAN: 0,
-    DA_XAC_NHAN: 1,
-    DA_HUY: 2,
-    DA_THANH_TOAN: 3
+    DA_HUY: 1,
+    DA_THANH_TOAN: 2
 };
 
 export const LyDoHuyDonHang = {

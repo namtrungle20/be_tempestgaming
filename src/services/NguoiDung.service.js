@@ -232,6 +232,9 @@ export const xoaNguoiDung = async (id) => {
 
     user.trangthai = TrangThaiTaiKhoan.DA_XOA
     user.deleted_at = new Date()
+
+    if (user.email) user.email = `deleted_${Date.now()}_${user.email}`
+    if (user.name) user.name = `deleted_${Date.now()}_${user.name}`
     await user.save()
 
     await db.Session.update(

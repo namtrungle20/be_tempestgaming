@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       NguoiDung.hasMany(models.DanhGia, { foreignKey: 'nguoidung_id' });//user_id
       NguoiDung.hasMany(models.DonHang, { foreignKey: 'nguoidung_id' });
       NguoiDung.hasMany(models.Session, { foreignKey: 'nguoidung_id' });
+      NguoiDung.hasMany(models.Otp, { foreignKey: 'nguoidung_id' });
     }
   }
   NguoiDung.init({
@@ -50,6 +51,11 @@ module.exports = (sequelize, DataTypes) => {
     diachi: DataTypes.STRING,
     avatar: DataTypes.STRING,
     vaitro: DataTypes.INTEGER,
+    email_verified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     trangthai: {
       type: DataTypes.INTEGER,
       allowNull: false,

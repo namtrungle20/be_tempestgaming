@@ -14,6 +14,7 @@ import tinNhanRouter from './routes/tinnhan.routes.js'
 import uuDaiHangRouter from './routes/uudai.routes.js'
 import { vaiTroRouter, hinhAnhRouter, chiTietRouter } from './routes/misc.routes.js';
 import momoMockRouter from './routes/momomock.routes.js'
+import otpRouter from './routes/otp.routes.js';
 
 export const AppRoute = (app) => {
     app.use(cookieParser());
@@ -34,4 +35,5 @@ export const AppRoute = (app) => {
     app.use('/api/chitiet', chiTietRouter);
     app.use('/api/chat', tinNhanRouter)
     app.use('/api/uudai', uuDaiHangRouter)
+    app.use('/api/otp', otpRouter);
 };

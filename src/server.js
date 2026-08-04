@@ -9,6 +9,7 @@ import { Server } from 'socket.io'
 import { AppRoute } from './AppRoute.js'
 import '../src/jobs/reconcileMomoPayments.job.js';
 import path from 'path';
+import { startCleanupJob } from './jobs/cleanupUnverifiedUsers.js';
 
 
 const app = express()
@@ -83,6 +84,8 @@ app.get('/api/health', async (req, res) => {
     });
   }
 });
+
+startCleanupJob();
 
 AppRoute(app)
 

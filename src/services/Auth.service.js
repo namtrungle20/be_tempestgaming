@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import argon2 from 'argon2'
+import { Op } from 'sequelize';
 import { v7 as uuidv7 } from 'uuid'
 import db from '../models/index.js'
 import ResponseNguoiDung from '../dtos/responses/ResponseNguoiDung.js'
@@ -8,41 +9,59 @@ import { VaiTroNguoiDung, TrangThaiTaiKhoan } from '../constants/index.js'
 import { verifyRefreshToken } from '../helpers/refreshToken.helper.js'
 import admin from '../config/firebaseConfig.js'
 import { guiEmailResetPassword } from './Email.service.js'
+import * as OtpService from './Otp.service.js'
 
 export const generateAccessToken = (nguoidung_id, vaitro) =>
     jwt.sign({ nguoidung_id, vaitro }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRES_IN })
 
-export const dangKy = async ({ name, sdt, password }) => {
+export const dangKy = async ({ name, email, password }) => {
     if (!name) throw { status: 400, message: 'Vui lòng cung cấp tên' }
-    if (!sdt) throw { status: 400, message: 'Vui lòng cung cấp số điện thoại' }
+    if (!email) throw { status: 400, message: 'Vui lòng cung cấp Email' }
     if (!password) throw { status: 400, message: 'Vui lòng cung cấp mật khẩu' }
 
-    const orConditions = [{ sdt }]
-    if (name) orConditions.push({ name })
+    const existed = await db.NguoiDung.findOne({
+        where: {
+            [db.Sequelize.Op.or]: [{ email }, { name }],
+            trangthai: { [db.Sequelize.Op.ne]: TrangThaiTaiKhoan.DA_XOA }
+        }
+    })
 
-    const existed = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: orConditions } })
-    if (existed) throw { status: 409, message: 'Name, số điện thoại đã được sử dụng' }
+    if (existed) {
+        if (!existed.email_verified) {
+            await existed.destroy()
+        } else {
+            if (existed.email === email) throw { status: 409, message: 'Email đã được sử dụng' }
+            if (existed.name === name) throw { status: 409, message: 'Tên đã được sử dụng' }
+        }
+    }
 
     const hashedPassword = password ? await argon2.hash(password) : null
     const nguoidung = await db.NguoiDung.create({
         nguoidung_id: uuidv7(),
         name,
-        sdt,
+        email,
         vaitro: VaiTroNguoiDung.USER,
-        password: hashedPassword
+        password: hashedPassword,
+        email_verified: false,
+        ngayvao: new Date()
     })
+    await OtpService.taoVaGuiOtp(nguoidung.nguoidung_id, nguoidung.email)
     return new ResponseNguoiDung(nguoidung)
 }
 
-export const dangNhap = async ({ sdt, password }, res) => {
-    if (!sdt) throw { status: 400, message: 'Vui lòng cung cấp số điện thoại' }
+export const dangNhap = async ({ email, password }, res) => {
+    if (!email) throw { status: 400, message: 'Vui lòng cung cấp Email' }
     if (!password) throw { status: 400, message: 'Vui lòng cung cấp mật khẩu' }
 
-    const nguoidung = await db.NguoiDung.findOne({ where: { sdt } })
+    const nguoidung = await db.NguoiDung.findOne({ where: { email } })
     if (!nguoidung) throw { status: 404, message: 'Tài khoản không tồn tại' }
 
     if (!nguoidung.password)
         throw { status: 400, message: 'Tài khoản này đăng nhập bằng Google. Vui lòng dùng nút Đăng nhập Google.' }
+
+    if (!nguoidung.email_verified) {
+        throw { status: 403, message: 'Tài khoản chưa xác thực email, vui lòng kiểm tra hộp thư' }
+    }
 
     const isValid = await argon2.verify(nguoidung.password, password)
     if (!isValid) throw { status: 401, message: 'Mật khẩu không chính xác' }
@@ -125,14 +144,14 @@ export const loginWithGoogle = async (idToken, res) => {
 };
 
 
-export const quenMatKhau = async ({ email, sdt }) => {
+export const quenMatKhau = async ({ email }) => {
     // console.log('🔵 quenMatKhau called:', email, sdt)
-    if (!sdt) throw { status: 400, message: 'Vui lòng nhập số điện thoại' }
+    // if (!sdt) throw { status: 400, message: 'Vui lòng nhập số điện thoại' }
     if (!email) throw { status: 400, message: 'Vui lòng nhập email' }
 
     const GENERIC_MESSAGE = 'Nếu email hoặc số điện thoại tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.'
 
-    const user = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: [{ sdt }, { email }] } })
+    const user = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: [{ email }] } })
     // console.log('🔵 user found:', user?.nguoidung_id, user?.email)
 
     if (!user) return { message: GENERIC_MESSAGE }
