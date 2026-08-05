@@ -26,3 +26,28 @@ export const postGuiLaiOtp = async (req, res) => {
 
     return res.status(200).json({ message: 'Đã gửi lại mã OTP' });
 };
+
+export const postYeuCauDoiEmail = async (req, res) => {
+    // console.log('req.user:', req.user);
+    // console.log('req.user.id:', req.user?.id);
+    // console.log('req.user.nguoidung_id:', req.user?.nguoidung_id);
+    const nguoidung_id = req.user.nguoidung_id; // lấy từ middleware auth, không tin req.body
+    const { email_moi } = req.body;
+
+    if (!email_moi) throw { status: 400, message: 'Thiếu email mới' };
+
+    await OtpService.yeuCauDoiEmail(nguoidung_id, email_moi);
+
+    return res.status(200).json({ success: true, message: 'Đã gửi mã OTP tới email mới' });
+};
+
+export const postXacThucDoiEmail = async (req, res) => {
+    const nguoidung_id = req.user.nguoidung_id;
+    const { otp } = req.body;
+
+    if (!otp) throw { status: 400, message: 'Thiếu otp' };
+
+    const result = await OtpService.xacThucDoiEmail(nguoidung_id, otp);
+
+    return res.status(200).json({ success: true, message: 'Đổi email thành công', data: result });
+};

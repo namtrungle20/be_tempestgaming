@@ -8,11 +8,13 @@ import { VaiTroNguoiDung } from '../constants/VaiTroNguoiDung.js';
 
 const router = Router();
 
+const adminOrUser = requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER])
+
 router.post('/dangky', validate(ThemNguoiDungRequest), asyncHandler(AuthController.signUp));
 router.post('/dangnhap', asyncHandler(AuthController.signIn));
 router.post('/refresh', asyncHandler(AuthController.refresh));
 router.post('/logout', asyncHandler(AuthController.logout));
-router.get('/me', requestVaiTro([VaiTroNguoiDung.ADMIN, VaiTroNguoiDung.USER]), asyncHandler(AuthController.getMe))
+router.get('/me', adminOrUser, asyncHandler(AuthController.getMe))
 
 router.post('/google', asyncHandler(AuthController.loginGoogle))
 

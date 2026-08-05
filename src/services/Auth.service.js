@@ -149,7 +149,7 @@ export const quenMatKhau = async ({ email }) => {
     // if (!sdt) throw { status: 400, message: 'Vui lòng nhập số điện thoại' }
     if (!email) throw { status: 400, message: 'Vui lòng nhập email' }
 
-    const GENERIC_MESSAGE = 'Nếu email hoặc số điện thoại tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.'
+    const GENERIC_MESSAGE = 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.'
 
     const user = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: [{ email }] } })
     // console.log('🔵 user found:', user?.nguoidung_id, user?.email)

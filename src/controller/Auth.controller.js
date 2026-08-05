@@ -36,8 +36,8 @@ export const loginGoogle = async (req, res) => {
 };
 
 export const postQuenMatKhau = async (req, res) => {
-    const { email, sdt } = req.body
-    const result = await AuthService.quenMatKhau({ email, sdt })
+    const { email } = req.body
+    const result = await AuthService.quenMatKhau({ email })
     return res.status(200).json({ success: true, ...result })
 }
 
