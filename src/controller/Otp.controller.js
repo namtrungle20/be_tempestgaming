@@ -51,3 +51,17 @@ export const postXacThucDoiEmail = async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'Đổi email thành công', data: result });
 };
+
+export const quenMatKhauYeuCau = async (req, res) => {
+    const result = await OtpService.yeuCauQuenMatKhau(req.body.email)
+    res.json(result)
+}
+
+export const quenMatKhauXacThuc = async (req, res) => {
+    const result = await OtpService.xacThucQuenMatKhau(
+        req.body.email,
+        req.body.otp,
+        req.body.mat_khau_moi
+    )
+    res.json(result)
+}

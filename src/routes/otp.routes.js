@@ -8,4 +8,5 @@ const router = Router();
 router.post('/xac-thuc-email', asyncHandler(OtpController.postXacThucEmail));
 router.post('/gui-lai-otp', asyncHandler(OtpController.postGuiLaiOtp));
 
+
 export default router;

@@ -151,7 +151,9 @@ export const quenMatKhau = async ({ email }) => {
 
     const GENERIC_MESSAGE = 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.'
 
-    const user = await db.NguoiDung.findOne({ where: { [db.Sequelize.Op.or]: [{ email }] } })
+    const emailTrim = email.trim().toLowerCase()
+
+    const user = await db.NguoiDung.findOne({ where: { email: emailTrim } })
     // console.log('🔵 user found:', user?.nguoidung_id, user?.email)
 
     if (!user) return { message: GENERIC_MESSAGE }
@@ -165,7 +167,6 @@ export const quenMatKhau = async ({ email }) => {
     if (!user.password)
         throw { status: 400, message: 'Tài khoản này đăng nhập bằng Google. Vui lòng dùng nút Đăng nhập Google.' }
 
-    const emailTrim = email.trim().toLowerCase()
     if (!user.email) {
         // Tài khoản chưa có email -> gắn email mới nhập vào tài khoản
         await user.update({ email: emailTrim })

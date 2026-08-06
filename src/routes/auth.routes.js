@@ -3,6 +3,7 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 import validate from '../middlewares/validate.middleware.js';
 import { requestVaiTro } from '../middlewares/auth.middleware.js'
 import * as AuthController from '../controller/Auth.controller.js';
+import * as OtpController from '../controller/Otp.controller.js';
 import ThemNguoiDungRequest from '../dtos/requests/NguoiDung/ThemNguoiDungRequest.js';
 import { VaiTroNguoiDung } from '../constants/VaiTroNguoiDung.js';
 
@@ -20,5 +21,7 @@ router.post('/google', asyncHandler(AuthController.loginGoogle))
 
 router.post('/quenmatkhau', asyncHandler(AuthController.postQuenMatKhau))
 router.post('/datlaimatkhau', asyncHandler(AuthController.postDatLaiMatKhau))
+router.post('/quenmatkhau/yeu-cau', asyncHandler(OtpController.quenMatKhauYeuCau))
+router.post('/quenmatkhau/xac-thuc', asyncHandler(OtpController.quenMatKhauXacThuc))
 
 export default router;

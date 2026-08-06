@@ -6,8 +6,8 @@ import { tinhVaCapNhatHang } from './NguoiDung.service.js';
 import { capNhatDonHang } from './DonHang.service.js';
 import { io } from "../server.js"
 
-const IS_MOMO_MOCK = process.env.MOMO_MOCK_MODE;
-const BASE_URL = process.env.BASE_URL;
+// const IS_MOMO_MOCK = process.env.MOMO_MOCK_MODE;
+// const BASE_URL = process.env.BASE_URL;
 
 const callMomoAPI = async (body) => {
     console.log('[MoMo] Bắt đầu gọi API lúc:', new Date().toISOString());
@@ -36,27 +36,27 @@ export const createMomoPayment = async ({ donhang_id, sotien, orderInfo }) => {
         trangthai: TrangThaiThanhToan.CHO_THANH_TOAN,
     });
 
-    if (IS_MOMO_MOCK) {
-        const orderInfoText = orderInfo ?? `Thanh toan don hang ${donhang_id}`;
-        const mockPayUrl =
-            `${BASE_URL}/momo-mock/pay` +
-            `?orderId=${thanhtoan.thanhtoan_id}` +
-            `&amount=${sotien}` +
-            `&requestId=${thanhtoan.thanhtoan_id}` +
-            `&orderInfo=${encodeURIComponent(orderInfoText)}`;
+    // if (IS_MOMO_MOCK) {
+    //     const orderInfoText = orderInfo ?? `Thanh toan don hang ${donhang_id}`;
+    //     const mockPayUrl =
+    //         `${BASE_URL}/momo-mock/pay` +
+    //         `?orderId=${thanhtoan.thanhtoan_id}` +
+    //         `&amount=${sotien}` +
+    //         `&requestId=${thanhtoan.thanhtoan_id}` +
+    //         `&orderInfo=${encodeURIComponent(orderInfoText)}`;
 
-        await thanhtoan.update({
-            momo_order_id: thanhtoan.thanhtoan_id,
-            momo_request_id: thanhtoan.thanhtoan_id,
-        });
+    //     await thanhtoan.update({
+    //         momo_order_id: thanhtoan.thanhtoan_id,
+    //         momo_request_id: thanhtoan.thanhtoan_id,
+    //     });
 
-        console.log('[MoMo MOCK] Bỏ qua MoMo thật, trả payUrl giả lập:', mockPayUrl);
+    //     console.log('[MoMo MOCK] Bỏ qua MoMo thật, trả payUrl giả lập:', mockPayUrl);
 
-        return {
-            thanhtoan,
-            momoResult: { resultCode: 0, payUrl: mockPayUrl, orderId: thanhtoan.thanhtoan_id, requestId: thanhtoan.thanhtoan_id },
-        };
-    }
+    //     return {
+    //         thanhtoan,
+    //         momoResult: { resultCode: 0, payUrl: mockPayUrl, orderId: thanhtoan.thanhtoan_id, requestId: thanhtoan.thanhtoan_id },
+    //     };
+    // }
     // 2. Gọi MoMo API
     const body = buildMomoPaymentBody({
         orderId: thanhtoan.thanhtoan_id,
