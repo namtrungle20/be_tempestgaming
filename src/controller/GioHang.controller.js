@@ -43,8 +43,8 @@ export const xoaSanPhamKhoiGio = async (req, res) => {
 
 export const thanhToanGioHang = async (req, res) => {
     const userId = req.user.nguoidung_id;
-    const { diachi, sdt, phuongthucthanhtoan } = req.body;
-    const donHang = await thanhToan(userId, { diachi, sdt, phuongthucthanhtoan: Number(phuongthucthanhtoan) });
+    const { diachi, sdt, name, phuongthucthanhtoan } = req.body;
+    const donHang = await thanhToan(userId, { diachi, sdt, name, phuongthucthanhtoan: Number(phuongthucthanhtoan) });
 
     io.to('admin-room').emit('new-order', {
         donhang_id: donHang.donhang_id,

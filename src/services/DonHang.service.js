@@ -46,7 +46,7 @@ export const layDonHangs = async ({ search = '', page = 1, trangthai, created_at
 
 export const layDonHangTheoId = async (id) => {
     const donhang = await db.DonHang.findByPk(id, {
-        attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'created_at', 'updated_at', 'phi_van_chuyen', 'giam_gia', 'ly_do_huy', 'ghi_chu_huy', 'huy_boi'],
+        attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'name', 'created_at', 'updated_at', 'phi_van_chuyen', 'giam_gia', 'ly_do_huy', 'ghi_chu_huy', 'huy_boi'],
         include: [
             {
                 model: db.NguoiDung,
@@ -81,7 +81,7 @@ export const layDonHangTheoNguoiDung = async (nguoidung_id, { page = 1, trangtha
             order: [['created_at', 'DESC']],
             limit: PAGE_SIZE,
             offset,
-            attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'created_at', 'updated_at', 'phi_van_chuyen', 'giam_gia'],
+            attributes: ['donhang_id', 'tongtien', 'trangthai', 'diachi', 'sdt', 'name', 'created_at', 'updated_at', 'phi_van_chuyen', 'giam_gia'],
             include: [{
                 model: db.ChiTietDonHang,
                 as: 'ChiTietDonHangs',

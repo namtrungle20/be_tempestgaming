@@ -105,7 +105,7 @@ export const xoaSanPham = async (nguoidung_id, sanpham_id) => {
 };
 
 // Thanh toán: chuyển giỏ hàng thành đơn hàng
-export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan }) => {
+export const thanhToan = async (nguoidung_id, { diachi, sdt, name, phuongthucthanhtoan }) => {
 
     const items = await db.GioHang.findAll({
         where: { nguoidung_id },
@@ -164,7 +164,7 @@ export const thanhToan = async (nguoidung_id, { diachi, sdt, phuongthucthanhtoan
             phi_van_chuyen: phiVanChuyen,
             giam_gia: soTienGiam,
             trangthai: TrangThaiDonHang.CHO_XAC_NHAN,
-            diachi, sdt, phuongthucthanhtoan
+            diachi, sdt, name, phuongthucthanhtoan
         }, { transaction });
 
         for (const ct of chiTiets) {
